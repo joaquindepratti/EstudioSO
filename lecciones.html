@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lecciones · Sistemas Operativos</title>
+<style>
+:root{
+  --navy:#172C48; --navy-2:#213A5B; --bg:#F4F6F9; --panel:#FFFFFF; --ink:#1E2C3F;
+  --blue:#3673B9; --blue-soft:#EAF2FB; --teal:#268579; --teal-soft:#E9F5F2;
+  --gold:#C18A36; --gold-soft:#FBF4E8; --red:#C6645C; --red-soft:#FBEFEE;
+  --line:#E2E8EF; --muted:#6D7B8C;
+  --r:16px; --r-sm:10px; --shadow:0 2px 4px rgba(23,44,72,.04), 0 10px 28px rgba(23,44,72,.07);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg); color:var(--ink); font-size:16px; line-height:1.6;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{margin:0; line-height:1.25; letter-spacing:-.01em}
+p{margin:0 0 .85em}
+button{font:inherit; cursor:pointer}
+svg{flex:none}
+a{color:var(--blue)}
+code{font-family:var(--mono); font-size:.9em; background:#EDF2F8; padding:.08em .38em; border-radius:6px; border:1px solid var(--line)}
+
+/* layout */
+.app{display:flex; min-height:100vh}
+.side{width:262px; flex:0 0 262px; background:var(--navy); color:#DCE5F0; padding:22px 16px;
+  display:flex; flex-direction:column; gap:22px; position:sticky; top:0; height:100vh}
+.brand{display:flex; gap:11px; align-items:center; padding:0 6px}
+.brand .mark{width:38px;height:38px;flex:0 0 38px;border-radius:11px;background:linear-gradient(150deg,#2E6AA8,#1D8C7E);
+  display:grid; place-items:center; color:#fff; font-weight:700; font-size:15px; letter-spacing:-.03em}
+.brand b{display:block; color:#fff; font-size:14px; line-height:1.25}
+.brand span{font-size:11.5px; color:#93A6BE; letter-spacing:.04em; text-transform:uppercase}
+nav{display:flex; flex-direction:column; gap:4px}
+nav .sec{font-size:10.5px; text-transform:uppercase; letter-spacing:.11em; color:#7E93AE; padding:0 10px; margin-bottom:6px}
+.navbtn{display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:0; background:transparent;
+  color:#C4D2E3; padding:10px 11px; border-radius:10px; font-size:14.2px; transition:.15s}
+.navbtn:hover{background:var(--navy-2); color:#fff}
+.navbtn.on{background:#2B4C74; color:#fff; box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.ico{width:26px;height:26px;flex:0 0 26px;border-radius:8px;background:rgba(255,255,255,.08);display:grid;place-items:center}
+.ico svg{width:15px;height:15px;stroke:#DCE5F0;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.navbtn.on .ico{background:rgba(255,255,255,.16)}
+.navbtn.on .ico svg{stroke:#fff}
+.ns{display:none}
+.side .foot{margin-top:auto; font-size:11.5px; color:#7E93AE; padding:0 8px; line-height:1.5}
+.side .foot b{color:#A9BCD4}
+.dot-live{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--teal);margin-right:6px}
+main{flex:1; min-width:0; padding:30px 34px 80px}
+.wrap{max-width:900px; margin:0 auto}
+
+/* primitivas */
+.card{background:var(--panel); border:1px solid var(--line); border-radius:var(--r); padding:22px; box-shadow:var(--shadow)}
+.card+.card{margin-top:16px}
+.eyebrow{font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:8px}
+.h1{font-size:32px; font-weight:700}
+.h2{font-size:21px; font-weight:700}
+.lead{color:var(--muted); font-size:15.4px; max-width:70ch}
+.small{font-size:13.6px}
+.tiny{font-size:12.2px}
+.muted{color:var(--muted)}
+.pill{display:inline-flex; align-items:center; gap:5px; font-size:11.8px; font-weight:650; padding:3px 9px; border-radius:999px; white-space:nowrap}
+.pill.blue{background:var(--blue-soft); color:#2A5C93}
+.pill.teal{background:var(--teal-soft); color:#1C6C62}
+.pill.gold{background:var(--gold-soft); color:#8F6522}
+.pill.red{background:var(--red-soft); color:#A24B44}
+.pill.gray{background:#F1F4F8; color:#5A6B7E}
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1.5px solid var(--line);
+  background:#fff; color:var(--ink); border-radius:11px; padding:10px 16px; font-size:14.2px; font-weight:650;
+  transition:.15s; text-decoration:none}
+.btn:hover{border-color:#C4D6E8; background:#FBFDFF}
+.btn.primary{background:var(--blue); border-color:var(--blue); color:#fff; box-shadow:0 6px 16px rgba(54,115,185,.22)}
+.btn.primary:hover{background:#2F66A6; border-color:#2F66A6}
+.btn.teal{background:var(--teal); border-color:var(--teal); color:#fff; box-shadow:0 6px 16px rgba(38,133,121,.2)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:7px 12px; font-size:13px; border-radius:9px}
+.btn:focus-visible, .navbtn:focus-visible, .opt:focus-visible, .seg button:focus-visible, .tocitem:focus-visible{
+  outline:3px solid #9CC3EA; outline-offset:2px}
+.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btnrow{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+.row{display:flex; gap:14px; flex-wrap:wrap}
+.grid{display:grid; gap:14px}
+.g3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.sep{border:0; border-top:1px solid var(--line); margin:20px 0}
+
+/* hero */
+.hero{background:linear-gradient(135deg,#172C48,#1E4A6B 55%,#1D6F6A); border-radius:20px; padding:34px 32px;
+  color:#fff; position:relative; overflow:hidden; box-shadow:0 12px 34px rgba(23,44,72,.22)}
+.hero h1{font-size:33px; max-width:22ch; line-height:1.18}
+.hero p{color:#C6D6E6; max-width:56ch; margin-top:12px; font-size:15.4px}
+.hero .eyebrow{color:#9FB8D0}
+.hero .cta{display:flex; gap:10px; flex-wrap:wrap; margin-top:20px}
+.hero .btn.primary{background:#fff; color:var(--navy); border-color:#fff; box-shadow:0 8px 22px rgba(0,0,0,.18)}
+.hero .btn.primary:hover{background:#F1F6FB}
+.hero .btn.ghost{color:#fff; border-color:rgba(255,255,255,.36)}
+.hero .btn.ghost:hover{background:rgba(255,255,255,.1)}
+.hero .art{position:absolute; right:26px; top:50%; transform:translateY(-50%); opacity:.3; pointer-events:none}
+.stat{background:#fff; border:1px solid var(--line); border-radius:14px; padding:15px 16px; box-shadow:var(--shadow)}
+.stat .n{font-size:26px; font-weight:700; letter-spacing:-.02em; line-height:1.1}
+.stat .l{font-size:12.6px; color:var(--muted); margin-top:3px}
+.stat .n small{font-size:14px; color:var(--muted); font-weight:600}
+
+/* día / plan */
+.dia{display:flex; gap:14px; align-items:flex-start; background:#fff; border:1px solid var(--line);
+  border-radius:14px; padding:16px 18px; box-shadow:var(--shadow)}
+.dia .num{width:42px;height:42px;flex:0 0 42px;border-radius:12px;display:grid;place-items:center;
+  font-weight:700; font-size:16px; background:var(--blue-soft); color:#2A5C93}
+.dia.d2 .num{background:var(--teal-soft); color:#1C6C62}
+.dia.d3 .num{background:var(--gold-soft); color:#8F6522}
+.dia h3{font-size:16.5px}
+.dia .meta{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
+.bloque{display:flex; gap:12px; align-items:flex-start; padding:13px 0; border-top:1px solid var(--line)}
+.bloque:first-of-type{border-top:0}
+.check{width:22px;height:22px;flex:0 0 22px;border-radius:7px;border:1.7px solid #C3D0DE;background:#fff;
+  display:grid;place-items:center; margin-top:2px; transition:.15s}
+.check svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.check.on{background:var(--teal); border-color:var(--teal)}
+.check.on svg{opacity:1}
+.check:focus-visible{outline:3px solid #9CC3EA; outline-offset:2px}
+
+/* mapa de temas */
+.tema{display:flex; gap:14px; align-items:center; width:100%; text-align:left; background:#fff;
+  border:1px solid var(--line); border-radius:14px; padding:15px 17px; box-shadow:var(--shadow); transition:.15s}
+.tema:hover{border-color:#C4D6E8; transform:translateY(-1px)}
+.tema .peso{width:6px; align-self:stretch; border-radius:99px; background:var(--muted); flex:0 0 6px}
+.tema.p1 .peso{background:var(--red)}
+.tema.p2 .peso{background:var(--gold)}
+.tema.p3 .peso{background:var(--teal)}
+.tema h3{font-size:16px}
+.tema .bar{margin-top:9px}
+.bar{height:7px; background:#EDF2F8; border-radius:99px; overflow:hidden}
+.bar i{display:block; height:100%; background:var(--blue); border-radius:99px; transition:width .3s}
+.bar.teal i{background:var(--teal)}
+.barwrap{display:flex; gap:10px; align-items:center}
+.barwrap .bar{flex:1}
+
+/* lección */
+.toc{background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px; box-shadow:var(--shadow);
+  position:sticky; top:18px}
+.tocitem{display:flex; gap:9px; width:100%; text-align:left; border:0; background:transparent; border-radius:9px;
+  padding:8px 9px; font-size:13.4px; color:#41536A; line-height:1.35}
+.tocitem:hover{background:#F4F8FC}
+.tocitem.on{background:var(--blue-soft); color:#2A5C93; font-weight:650}
+.tocitem .st{width:14px;height:14px;flex:0 0 14px;border-radius:50%;border:1.6px solid #C3D0DE;margin-top:3px}
+.tocitem.read .st{background:var(--teal); border-color:var(--teal)}
+.leccion{background:#fff; border:1px solid var(--line); border-radius:16px; padding:26px 28px; box-shadow:var(--shadow)}
+.leccion h2{font-size:24px; margin-bottom:6px}
+.leccion h4{font-size:15.5px; margin:22px 0 8px; color:#2A3B52}
+.leccion p{font-size:15.2px; line-height:1.68; max-width:74ch}
+.leccion ul{margin:0 0 14px; padding-left:20px}
+.leccion li{font-size:15px; line-height:1.62; margin-bottom:7px; max-width:72ch}
+.leccion .resumen{background:var(--blue-soft); border-left:3px solid var(--blue); border-radius:10px;
+  padding:13px 16px; font-size:15px; line-height:1.6; margin:16px 0 4px}
+table{width:100%; border-collapse:collapse; margin:10px 0 16px; font-size:13.9px}
+th{text-align:left; font-size:11.6px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);
+  padding:8px 10px; border-bottom:1.5px solid var(--line); font-weight:700}
+td{padding:9px 10px; border-bottom:1px solid #EFF3F8; line-height:1.5; vertical-align:top}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:600; color:#2A3B52}
+pre{background:#F7F9FC; border:1px solid var(--line); border-radius:11px; padding:13px 15px; overflow:auto;
+  font-family:var(--mono); font-size:12.8px; line-height:1.7; margin:10px 0 16px; color:#233448}
+.nota{border-radius:11px; padding:13px 15px; margin:14px 0; font-size:14.4px; line-height:1.6; border:1px solid}
+.nota .t{font-weight:700; font-size:13.4px; margin-bottom:3px; display:flex; gap:7px; align-items:center}
+.nota.teal{background:var(--teal-soft); border-color:#BFE3DB} .nota.teal .t{color:#1C6C62}
+.nota.gold{background:var(--gold-soft); border-color:#EEDFC2} .nota.gold .t{color:#8F6522}
+.nota.red{background:var(--red-soft); border-color:#F2D5D2} .nota.red .t{color:#A24B44}
+.nota.blue{background:var(--blue-soft); border-color:#CFE0F2} .nota.blue .t{color:#2A5C93}
+.clavebox{background:#FCFDFF; border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin-top:18px}
+.clavebox li{font-size:14.4px}
+.lecnav{display:flex; gap:10px; justify-content:space-between; margin-top:18px; flex-wrap:wrap}
+.lecg{display:grid; grid-template-columns:minmax(0,1fr) 240px; gap:20px; align-items:start}
+.lecg > div{min-width:0}
+
+/* previa */
+.trap{background:#fff; border:1px solid var(--line); border-left:3px solid var(--red); border-radius:12px;
+  padding:14px 16px; margin-bottom:10px; box-shadow:var(--shadow)}
+.trap .k{font-size:11.4px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:700}
+.trap .c{font-size:14.6px; margin-top:5px; line-height:1.55}
+.chev{font-size:12px; color:var(--muted)}
+.pos{background:var(--teal); color:#fff; border-radius:6px; padding:1px 6px; font-size:11px; font-weight:700}
+.toast{position:fixed; left:50%; bottom:26px; transform:translate(-50%,14px); background:var(--navy); color:#fff;
+  padding:11px 18px; border-radius:11px; font-size:13.8px; box-shadow:0 12px 30px rgba(23,44,72,.3);
+  opacity:0; pointer-events:none; transition:.22s; z-index:99; max-width:90vw; margin-bottom:16px}
+.toast.show{opacity:1; transform:translate(-50%,0)}
+.empty{text-align:center; color:var(--muted); padding:34px 16px; font-size:14.4px}
+
+/* móvil */
+@media(max-width:980px){
+  .lecg{grid-template-columns:minmax(0,1fr)}
+  .lecg .toc{display:none}
+  .leccion{padding:20px 18px}
+  .hero h1{font-size:27px}
+  .hero{padding:26px 20px}
+  .hero .art{display:none}
+  .toc{position:static}
+}
+@media(max-width:820px){
+  .app{flex-direction:column}
+  .side{position:sticky; top:0; z-index:30; height:auto; width:100%; flex:none; padding:10px 12px 8px; gap:8px;
+    box-shadow:0 2px 12px rgba(23,44,72,.18)}
+  .brand{padding:0 2px}
+  .brand .mark{width:30px;height:30px;flex:0 0 30px;font-size:12.5px;border-radius:9px}
+  .brand b{font-size:13px} .brand span{font-size:10px}
+  .side .foot{display:none}
+  nav{display:grid; grid-template-columns:repeat(6,1fr); gap:3px}
+  nav .sec{display:none}
+  .navbtn{justify-content:center; text-align:center; padding:8px 1px; font-size:10.8px; line-height:1.2}
+  .navbtn .ico{display:none} .navbtn .nl{display:none} .navbtn .ns{display:inline}
+  main{padding:16px 14px 60px}
+  .h1{font-size:25px} .card{padding:17px}
+  .stat .n{font-size:22px}
+  .dia{padding:14px}
+  .dia .num{width:36px;height:36px;flex:0 0 36px;font-size:14px}
+  table{font-size:12.8px}
+  th,td{padding:7px 7px; overflow-wrap:anywhere}
+  .dia .meta .pill{font-size:11.2px}
+  .leccion p,.leccion li{font-size:14.6px}
+  .btnrow .btn{flex:1 1 auto}
+  .hero .cta .btn{flex:1 1 100%}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="mark">SO</div>
+      <div><b>Lecciones<br>Sistemas Operativos</b><span>Unidad 4 · 5 · K8s</span></div>
+    </div>
+    <nav id="nav">
+      <div class="sec">Estudiar</div>
+      <button class="navbtn on" data-view="inicio">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></span><span class="nl">Inicio</span><span class="ns">Inicio</span></button>
+      <button class="navbtn" data-view="plan">
+        <span class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></span><span class="nl">Plan de 3 días</span><span class="ns">Plan</span></button>
+      <button class="navbtn" data-view="temas">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h10"/></svg></span><span class="nl">Temas</span><span class="ns">Temas</span></button>
+      <button class="navbtn" data-view="cobertura">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/><path d="M3 3v18h18"/></svg></span><span class="nl">Qué cubre</span><span class="ns">Cubre</span></button>
+      <button class="navbtn" data-view="previa">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M5 8h14M7 16h10"/></svg></span><span class="nl">Repaso exprés</span><span class="ns">Repaso</span></button>
+      <button class="navbtn" data-view="progreso">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><span class="nl">Progreso</span><span class="ns">Progreso</span></button>
+    </nav>
+    <div class="foot">
+      <span class="dot-live"></span><b>Se guarda solo</b><br>
+      <span id="footDetalle">0 de 27 lecciones</span>
+    </div>
+  </aside>
+  <main><div class="wrap" id="app"></div></main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const LECCIONES = [{"id": "m1", "titulo": "I-nodos, enlaces y rutas", "peso": 1, "eje": "Archivos y sistema de archivos", "porQue": "Es el corazón del modelo UNIX y aparece en casi todos los parciales: siempre hay una pregunta de i-nodo o de enlaces (duro contra simbólico).", "min": 75, "banco": "Inodos y enlaces", "lecciones": [{"id": "l1", "t": "El archivo y sus metadatos: qué guarda el i-nodo", "min": 14, "banco": "Inodos y enlaces", "resumen": "Un archivo son dos cosas separadas: los atributos (i-nodo) y los datos (bloques). El nombre no está en ninguno de los dos.", "cuerpo": [{"tipo": "p", "txt": "En UNIX un archivo no es un bloque de bytes con un nombre pegado. Son tres piezas distintas que conviene tener separadas en la cabeza: el **nombre**, que vive en el directorio; el **i-nodo**, que guarda los metadatos y la ubicación de los datos; y los **bloques de datos**, que tienen el contenido."}, {"tipo": "tabla", "cab": ["Atributo del i-nodo", "Qué guarda"], "filas": [["Tipo", "Archivo común, directorio, enlace, dispositivo, tubería"], ["Tamaño", "Cantidad de bytes de contenido útil"], ["Fechas", "Última modificación, último acceso, último cambio de i-nodo"], ["Propietario y grupo", "Quién es el dueño y a qué grupo pertenece"], ["Permisos", "Los nueve bits más los tres especiales"], ["Contador de enlaces", "Cuántos nombres apuntan a este i-nodo"], ["Ubicación", "Dónde están los bloques: punteros directos e indirectos"]]}, {"tipo": "nota", "tono": "red", "t": "Lo que NO guarda", "txt": "El i-nodo **no guarda el nombre**. Es a propósito: por eso un mismo archivo puede tener varios nombres y renombrar es instantáneo. Si en el parcial te preguntan qué no está en el i-nodo, la respuesta es el nombre (y tampoco está el contenido, que va en los bloques)."}, {"tipo": "h", "txt": "Cómo se ve en el disco"}, {"tipo": "lista", "items": ["Un volumen tiene una **tabla de i-nodos** con una cantidad fija: se define al formatear. Un servidor con millones de archivos chicos puede quedarse sin i-nodos aunque tenga espacio libre.", "Cada i-nodo ocupa unos cientos de bytes y existe mientras haya al menos un nombre apuntándolo.", "Se consulta con `stat archivo` (i-nodo, enlaces, permisos, fechas) y el espacio libre de i-nodos con `df -i`.", "`ls -l` muestra un número después de los permisos: es el contador de enlaces, no el tamaño."]}, {"tipo": "codigo", "txt": "$ stat informe.txt\n  File: informe.txt\n  Size: 1204      Blocks: 8    IO Block: 4096  regular file\nDevice: 801h      Inode: 8891  Links: 1\nAccess: (0644/-rw-r--r--)  Uid: (1000/ana)  Gid: (1000/ana)"}], "clave": ["Nombre en el directorio, metadatos en el i-nodo, contenido en los bloques", "El i-nodo no guarda el nombre ni el contenido", "Los i-nodos son una cantidad fija por volumen: se agotan"], "trampa": "Decir que borrar un archivo libera el espacio enseguida. No: si queda otro nombre (o un proceso lo tiene abierto) el i-nodo y sus bloques siguen ocupados. Ese es el caso clásico del \"disco lleno que no se vacía\".", "parcial": "Pregunta típica: \"¿qué guarda y qué no guarda el i-nodo?\", \"¿cuántos i-nodos usa un archivo con tres hard links?\" (uno), o el caso del archivo borrado que sigue ocupando espacio."}, {"id": "l2", "t": "Directorios, nombres y rutas", "min": 11, "banco": "Rutas y directorios", "resumen": "Un directorio es un archivo especial cuyo contenido es una tabla de pares nombre → número de i-nodo.", "cuerpo": [{"tipo": "tabla", "cab": ["Pieza", "Qué contiene o significa"], "filas": [["Directorio", "Tabla de entradas: nombre + número de i-nodo"], ["Ruta absoluta", "Empieza en / y siempre designa lo mismo, sin importar desde dónde se escribe"], ["Ruta relativa", "Parte del directorio de trabajo actual: puede designar cosas distintas según el contexto"], [". y ..", "El directorio actual y el padre; los crea el sistema en todo directorio"], ["Raíz /", "Único árbol: los discos se cuelgan adentro, no hay una raíz por unidad"]]}, {"tipo": "p", "txt": "Renombrar o mover un archivo dentro del mismo sistema de archivos es **instantáneo**, aunque el archivo pese gigabytes: solo cambia una entrada de la tabla del directorio, el i-nodo queda igual. Copiar, en cambio, lee los datos y crea un i-nodo nuevo."}, {"tipo": "h", "txt": "Los directorios que hay que saber de memoria"}, {"tipo": "tabla", "cab": ["Directorio", "Qué hay adentro"], "filas": [["/bin y /sbin", "Binarios básicos y binarios de administración"], ["/etc", "Configuración del sistema, en texto plano"], ["/home", "Directorios personales de los usuarios"], ["/var", "Datos que cambian: logs, colas, cachés, bases de datos"], ["/tmp", "Temporales; se vacían al reiniciar y llevan sticky bit"], ["/proc", "Virtual: un directorio por proceso y estado del sistema"], ["/dev", "Dispositivos como archivos"], ["/lib", "Bibliotecas compartidas"], ["/opt y /usr/local", "Software instalado fuera del gestor de paquetes"], ["/mnt y /media", "Puntos de montaje de discos y medios extraíbles"]]}, {"tipo": "nota", "tono": "gold", "t": "Trampa de examen", "txt": "Las rutas relativas con `..` **no** funcionan igual en todos lados: si el proceso tiene otro directorio de trabajo, `../datos/x.csv` apunta a otro lado. Por eso los scripts y las tareas programadas usan rutas absolutas."}], "clave": ["Directorio = tabla nombre → i-nodo", "Absoluta: no depende del contexto. Relativa: sí", "Un solo árbol con una sola raíz; los discos se montan adentro"], "trampa": "Confundir \"renombrar dentro del mismo FS es instantáneo\" con \"mover entre particiones es instantáneo\". Entre particiones mv copia y borra: lento.", "parcial": "Suele venir como opción múltiple: qué contiene un directorio, si una ruta relativa siempre designa el mismo archivo, qué guarda /var o /proc."}, {"id": "l3", "t": "Enlaces duros y simbólicos", "min": 14, "banco": "Inodos y enlaces", "resumen": "El enlace duro es otro nombre para el mismo i-nodo. El simbólico es un archivo aparte que guarda una ruta.", "cuerpo": [{"tipo": "tabla", "cab": ["", "Enlace duro (ln)", "Enlace simbólico (ln -s)"], "filas": [["Qué es", "Otro nombre para el mismo i-nodo", "Un archivo aparte cuyo contenido es una ruta"], ["I-nodo", "Comparte el del archivo", "Tiene uno propio"], ["Contador de enlaces", "Lo incrementa", "No lo toca"], ["Si se borra el original", "El archivo sigue intacto", "El enlace queda colgado"], ["Si se mueve el destino", "Sigue funcionando: el i-nodo no cambió", "Se rompe si la ruta deja de ser válida"], ["Cruza sistemas de archivos", "No", "Sí"], ["Puede apuntar a un directorio", "No", "Sí"], ["Costo de resolución", "Ninguno: es una entrada normal", "Un paso extra para leer la ruta y resolverla"]]}, {"tipo": "codigo", "txt": "$ ln datos.csv duro.csv      # hard link\n$ ln -s datos.csv blando.csv # simbólico\n$ ls -li\n8891 -rw-r--r-- 2 ana ana 1204 datos.csv\n8891 -rw-r--r-- 2 ana ana 1204 duro.csv\n8902 lrwxrwxrwx 1 ana ana    9 blando.csv -> datos.csv"}, {"tipo": "p", "txt": "Como los dos primeros comparten i-nodo, el contador marca **2**. Al borrar uno de los nombres el contador baja a 1 y el archivo sigue accesible por el otro; los datos se liberan recién cuando llega a **cero** y ningún proceso lo tiene abierto."}, {"tipo": "h", "txt": "Por qué el duro no cruza particiones"}, {"tipo": "p", "txt": "El número de i-nodo solo tiene sentido **dentro de su propio sistema de archivos**: dos volúmenes distintos pueden tener dos i-nodos con el número 8891 que no sean el mismo archivo. Por eso el hard link no puede cruzar y el simbólico sí: el simbólico no guarda un número, guarda una ruta."}, {"tipo": "nota", "tono": "gold", "t": "Trampa de examen", "txt": "El enlace simbólico **se resuelve en cada uso**, no al crearlo. Por eso si el destino no existe todavía, el enlace se puede crear y empieza a funcionar solo cuando aparece: no hay error al crearlo. Y si se desmonta el sistema de archivos donde estaba el destino, el enlace queda roto."}], "clave": ["Duro: mismo i-nodo, sube el contador, no cruza FS, no va a directorios", "Simbólico: ruta propia, se resuelve en cada acceso, puede quedar colgado", "Los datos se liberan cuando el contador llega a 0 y nadie lo tiene abierto"], "trampa": "Pensar que borrar el original mata el hard link (falso) o que borrar el original no afecta al simbólico (falso: queda colgado).", "parcial": "Es de las preguntas más seguras del parcial, en MCQ y en desarrollo: \"comparar enlace duro y simbólico\", \"¿qué pasa si borro el original?\", \"¿por qué el duro no cruza particiones?\"."}, {"id": "l4", "t": "Punteros e indirección: cuánto cuesta llegar a un bloque", "min": 14, "banco": "Inodos y enlaces", "resumen": "Un archivo chico se lee con los punteros directos del i-nodo; uno grande necesita uno o más niveles de indirección, y cada nivel agrega lecturas de disco.", "cuerpo": [{"tipo": "p", "txt": "El i-nodo guarda un puñado de punteros **directos** que apuntan a bloques de datos, más punteros a bloques de índices: uno de indirección **simple**, uno **doble** y uno **triple**."}, {"tipo": "tabla", "cab": ["Nivel", "Qué agrega", "Lecturas extra para llegar a un bloque"], "filas": [["Directo", "Apunta a un bloque de datos", "0 (el puntero ya está en el i-nodo)"], ["Indirección simple", "Un bloque lleno de punteros a datos", "1 lectura del bloque de índices"], ["Indirección doble", "Punteros a bloques simples", "2 lecturas"], ["Indirección triple", "Punteros a bloques dobles", "3 lecturas"]]}, {"tipo": "p", "txt": "Con bloques de 4 KB y punteros de 4 bytes, cada bloque de índices tiene 1024 entradas: la indirección simple cubre 1024 bloques (4 MB), la doble 1024² bloques (4 GB) y la triple 1024³ bloques (4 TB)."}, {"tipo": "nota", "tono": "teal", "t": "Asignación perezosa", "txt": "Los punteros que valen nulo no apuntan a nada: el archivo puede ser **disperso**. Crear un archivo de 1 GB con un solo byte escrito no ocupa 1 GB en disco, solo los bloques tocados. Ese es el \"tamaño aparente contra tamaño real\" que confunde en los listados."}, {"tipo": "nota", "tono": "gold", "t": "Cómo se pregunta", "txt": "El ejercicio típico pide contar lecturas de disco: \"¿cuántas lecturas cuesta llegar al bloque N de un archivo de X MB?\". Es contar niveles: 1 para simple, 2 para doble, 3 para triple."}], "clave": ["Directos para lo chico; simple/doble/triple para lo grande", "Cada nivel = una lectura más del bloque de índices", "Un bloque de índices guarda 1024 punteros (con 4 KB y 4 bytes)"], "trampa": "Sumar mal las lecturas: el i-nodo ya se leyó para abrir el archivo, lo que se cuenta es lo que hace falta después para llegar al bloque de datos.", "parcial": "Aparece más en desarrollo que en MCQ. Si te toca, conviene dibujar los tres niveles y recién después contar."}], "cubre": "Unidad 4 · A, B, C y D (el archivo, directorios y rutas, i-nodo, enlaces)"}, {"id": "m2", "titulo": "Permisos y seguridad de archivos", "peso": 1, "eje": "Archivos y sistema de archivos", "porQue": "Es el tema con más preguntas cortas y el que más fácil se pierde por una confusión: los permisos sobre un directorio significan otra cosa que sobre un archivo.", "min": 70, "banco": "Permisos", "lecciones": [{"id": "l5", "t": "Los nueve bits: archivo y directorio no significan lo mismo", "min": 14, "banco": "Permisos", "resumen": "En un archivo, r lee, w escribe, x ejecuta. En un directorio, r lista, w crea y borra entradas, x permite atravesarlo.", "cuerpo": [{"tipo": "tabla", "cab": ["Permiso", "Sobre un archivo", "Sobre un directorio"], "filas": [["Lectura (r)", "Se puede leer el contenido", "Se pueden listar los nombres que contiene"], ["Escritura (w)", "Se puede modificar el contenido", "Se pueden crear, renombrar y borrar entradas dentro"], ["Ejecución (x)", "Se puede ejecutar como programa", "Se puede atravesar para llegar a lo que hay adentro"]]}, {"tipo": "nota", "tono": "red", "t": "La respuesta más importante de todo el tema", "txt": "Para **borrar un archivo** hace falta permiso de escritura **sobre el directorio**, no sobre el archivo. Por eso podés borrar un archivo tuyo de solo lectura, y no podés borrar de un directorio ajeno aunque el archivo sea tuyo."}, {"tipo": "p", "txt": "Para llegar a un archivo hay que poder atravesar **cada** directorio del camino: si falta `x` en alguno, no se llega aunque el archivo sea legible para todos. Y para listar hace falta `r`; con `x` solo ya podés acceder a un archivo si sabés su nombre exacto."}, {"tipo": "h", "txt": "Notaciones y umask"}, {"tipo": "tabla", "cab": ["Octal", "Simbólico", "Significado"], "filas": [["755", "rwxr-xr-x", "Dueño todo; grupo y otros leen y ejecutan"], ["644", "rw-r--r--", "Dueño lee y escribe; el resto solo lee"], ["600", "rw-------", "Solo el dueño lee y escribe (claves privadas)"], ["777", "rwxrwxrwx", "Todos pueden todo: mala práctica"], ["640", "rw-r-----", "Dueño lee y escribe; grupo lee; otros nada"]]}, {"tipo": "p", "txt": "El **umask** es una máscara por proceso que se resta a los permisos pedidos al crear. Con umask 022, un archivo nuevo queda en 666 − 022 = **644** y un directorio en 777 − 022 = **755**. Se consulta y se cambia con `umask`."}, {"tipo": "nota", "tono": "gold", "t": "Cuidado con root y con el dueño", "txt": "root saltea las verificaciones de permisos. Y el dueño de un archivo con 000 **no puede leerlo** aunque sea suyo: primero se aplica la terna del propietario, y si ahí no hay permiso no se sigue buscando en grupo u otros."}], "clave": ["Sobre directorios: r lista, w crea/borra, x atraviesa", "Borrar un archivo depende del permiso del directorio", "umask se resta a los permisos pedidos: 666 − 022 = 644"], "trampa": "Responder \"no puede borrarlo porque el archivo es de solo lectura\". El archivo no se toca: se borra una entrada del directorio.", "parcial": "Pregunta garantizada. Además del significado, suelen pedir calcular el resultado de un umask o explicar el caso del archivo con 000."}, {"id": "l6", "t": "Permisos especiales: setuid, setgid y sticky", "min": 12, "banco": "Permisos", "resumen": "Son tres bits que se suman delante del octal: 4 setuid, 2 setgid, 1 sticky. Cambian quién ejecuta o quién puede borrar.", "cuerpo": [{"tipo": "tabla", "cab": ["Bit", "Valor", "Efecto", "Ejemplo"], "filas": [["setuid", "4000", "Al ejecutar, el proceso toma la identidad del dueño del archivo", "passwd, que escribe en /etc/shadow siendo usuario común"], ["setgid", "2000", "Igual pero con el grupo; sobre un directorio, los archivos nuevos heredan el grupo del directorio", "Directorios compartidos por un equipo"], ["sticky", "1000", "En un directorio con escritura para todos, solo el dueño del archivo puede borrarlo", "/tmp"]]}, {"tipo": "codigo", "txt": "$ ls -l /usr/bin/passwd\n-rwsr-xr-x 1 root root 68208 /usr/bin/passwd\n# la s en lugar de x del dueño = setuid\n\n$ chmod 4755 programa   # activa setuid\n$ chmod 1777 /tmp       # sticky"}, {"tipo": "nota", "tono": "red", "t": "El riesgo que hay que nombrar", "txt": "setuid sobre un programa mal escrito es una escalada de privilegios: el programa corre como root y cualquier error (una variable de entorno, un archivo temporal, un shell interno) te deja root. Por eso casi no se usa y se prefiere sudo con reglas puntuales."}], "clave": ["4 setuid, 2 setgid, 1 sticky", "setuid: corre como el dueño del archivo", "sticky en /tmp: cada uno borra solo lo suyo"], "trampa": "Confundir sticky con \"no se puede escribir en el directorio\". Se puede escribir (crear), lo que impide es borrar lo ajeno.", "parcial": "En desarrollo piden los tres con un caso de uso y un riesgo. En MCQ aparece el 1777 de /tmp o el chmod 4755."}, {"id": "l7", "t": "Más allá de los nueve bits: ACL, atributos y montaje", "min": 10, "banco": "Permisos", "resumen": "Cuando los nueve bits no alcanzan entran las listas de control de acceso, los atributos del sistema de archivos y las opciones de montaje.", "cuerpo": [{"tipo": "tabla", "cab": ["Mecanismo", "Qué agrega"], "filas": [["ACL", "Permisos por usuario o grupo puntual, más allá de dueño/grupo/otros"], ["Atributos extendidos", "Metadatos arbitrarios asociados al archivo"], ["Atributos del sistema de archivos", "Marcas como inmutable o solo-agregar"], ["Control de acceso obligatorio", "Políticas tipo SELinux o AppArmor, por encima de los permisos"], ["Opciones de montaje", "ro, noexec, nosuid, noatime aplicadas a todo el volumen"], ["Cifrado", "Contenido cifrado en reposo por el sistema de archivos"]]}, {"tipo": "p", "txt": "Si un usuario no puede leer un archivo aunque tenga `r` para otros, el orden de sospecha es: falta `x` en algún directorio del camino, una ACL que achica los permisos, un atributo inmutable, el volumen montado en solo lectura, o una política de seguridad."}, {"tipo": "p", "txt": "Y el contraste con FAT16 que usan en el laboratorio: FAT no tiene propietario ni permisos reales, solo bits de atributo globales (solo lectura, oculto, sistema, archivado). Cualquier usuario del sistema hace cualquier cosa con el archivo: no hay control de acceso verdadero. Por eso se lo usa en pendrives (compatibilidad) y no para datos con seguridad."}], "clave": ["ACL: permisos por usuario puntual", "Atributos y montajes pueden bloquear aunque los bits digan que sí", "FAT16 no tiene permisos ni propietario: solo atributos"], "trampa": "En el diagnóstico de \"no puedo leer aunque tengo permiso\", olvidarse del `x` del directorio. Es la causa más común y la que más preguntan.", "parcial": "En MCQ suele venir como caso a resolver (\"¿qué explica el bloqueo?\"). En desarrollo, comparar FAT16 con ext4 desde la seguridad."}], "cubre": "Unidad 4 · M (seguridad de archivos), incluida la comparación con FAT16"}, {"id": "m3", "titulo": "Montaje, sistemas de archivos y LVM", "peso": 2, "eje": "Archivos y sistema de archivos", "porQue": "Bastante pregunta de MCQ y alguna de desarrollo. Lo importante es entender el montaje y qué aporta cada sistema de archivos, no memorizar tablas de fabricantes.", "min": 55, "banco": "Montaje y sistemas de archivos", "lecciones": [{"id": "l8", "t": "Montaje: un solo árbol, muchos dispositivos", "min": 14, "banco": "Montaje y sistemas de archivos", "resumen": "Montar es enganchar un sistema de archivos en un directorio existente. Ese directorio pasa a mostrar el contenido del dispositivo y lo que había queda oculto.", "cuerpo": [{"tipo": "p", "txt": "Linux no usa letras de unidad: hay **un único árbol** y cada disco se cuelga en un directorio llamado **punto de montaje**. Si montás sobre un directorio que ya tenía archivos, esos archivos quedan ocultos mientras dure el montaje, pero **no se borran**; al desmontar reaparecen."}, {"tipo": "codigo", "txt": "$ mount /dev/sdb1 /mnt/pendrive   # montar\n$ umount /mnt/pendrive            # desmontar\n$ mount                           # lista los montajes actuales\n$ df -h                           # espacio libre por sistema de archivos\n$ df -i                           # i-nodos libres"}, {"tipo": "tabla", "cab": ["Regla", "Por qué"], "filas": [["Los enlaces duros no cruzan puntos de montaje", "Distinto sistema de archivos, distinto espacio de i-nodos"], ["No se puede desmontar lo que está en uso", "Hay archivos abiertos o un proceso con ese directorio de trabajo"], ["Se pueden anidar montajes", "Un volumen montado dentro de otro"], ["Se puede montar lo mismo en varios puntos", "Compartir un volumen"], ["Se definen opciones por punto", "ro, noatime, noexec, nosuid"], ["El arranque se configura en /etc/fstab", "Dispositivo, punto, tipo y opciones"]]}, {"tipo": "nota", "tono": "teal", "t": "noatime en el laboratorio", "txt": "Montar el pendrive con `noatime` evita que cada **lectura** actualice la fecha de último acceso en el i-nodo: así no se escribe en la memoria flash a cada rato y el pendrive no se desgasta tan rápido. `commit=60` agrupa los volcados a disco cada 60 segundos."}], "clave": ["Montar = enganchar un FS en un directorio existente", "Lo que había en el punto de montaje se oculta, no se borra", "No se desmonta con archivos abiertos; hard links no cruzan montajes"], "trampa": "Decir que los archivos del punto de montaje \"se pierden\". Se ocultan: siguen en el disco original y reaparecen al desmontar.", "parcial": "MCQ segura: qué pasa al montar sobre un directorio con contenido, qué opción evita gastar el flash, por qué falla un umount."}, {"id": "l9", "t": "Sistemas de archivos: journaling, COW y qué elegir", "min": 16, "banco": "Montaje y sistemas de archivos", "resumen": "Después de FAT16 vienen tres ideas: registro por diario, extensiones y copia al escribir. Con eso alcanza para elegir entre ext4, XFS, btrfs y ZFS.", "cuerpo": [{"tipo": "h", "txt": "FAT16, el punto de partida"}, {"tipo": "lista", "items": ["Sin journaling, sin permisos, sin propietario, nombres 8.3, tamaño máximo chico y cantidad de entradas en el directorio raíz fija.", "A favor: simplicidad y compatibilidad universal. Por eso sigue en pendrives.", "Su tabla FAT es una cadena de punteros: el acceso aleatorio obliga a recorrerla."]}, {"tipo": "h", "txt": "Las tres ideas modernas"}, {"tipo": "tabla", "cab": ["Idea", "Qué problema resuelve"], "filas": [["Journaling (registro por diario)", "Anota la operación antes de hacerla: después de un corte, el sistema completa o descarta lo pendiente y queda consistente sin recorrer todo el disco"], ["Extensiones", "El i-nodo apunta a rangos contiguos en lugar de a cada bloque: menos metadatos y menos fragmentación"], ["Copia al escribir (COW)", "Nunca se pisa lo que está en disco: se escribe aparte y se cambia el puntero, lo que hace instantáneas casi gratis y da integridad"]]}, {"tipo": "tabla", "cab": ["Sistema", "Dónde brilla", "La contra que hay que saber"], "filas": [["ext4", "Uso general, escritorio, servidor chico o mediano", "Cantidad de i-nodos fija al formatear; sin instantáneas propias"], ["XFS", "Volúmenes grandes y mucha concurrencia", "No se puede reducir nunca, ni desmontado"], ["btrfs", "Instantáneas, subvolúmenes, compresión", "Menos rendimiento en bases de datos; sus modos con paridad no se recomiendan"], ["ZFS", "Integridad extremo a extremo, checksums, RAID-Z", "Fuera del núcleo por licencias; consume mucha memoria"]]}, {"tipo": "nota", "tono": "gold", "t": "Cómo estudiar esta tabla", "txt": "No memorices números de tamaño máximo. Quedate con el par \"dónde brilla / qué no se puede\": ext4 es el equilibrio, XFS no reduce, btrfs y ZFS traen COW e instantáneas, ZFS prioriza integridad y no está en el núcleo."}, {"tipo": "nota", "tono": "red", "t": "El journaling no salva tus datos", "txt": "El journal protege la **estructura** del sistema de archivos, no el contenido de tu aplicación: después de un corte el volumen es consistente pero un archivo puede estar incompleto. Y no repara daños físicos."}], "clave": ["Journaling: consistencia rápida después de un corte", "COW: escribir aparte, instantáneas casi gratis (btrfs, ZFS)", "XFS no reduce; ext4 tiene i-nodos fijos; ZFS vive fuera del núcleo"], "trampa": "Pensar que journaling equivale a \"no se pierde nada\". Consistencia de estructura no es integridad de los datos de la aplicación.", "parcial": "MCQ de \"qué ventaja tiene XFS / btrfs / ZFS\" o \"qué resuelve el journaling\". En desarrollo piden comparar dos con un caso de uso."}, {"id": "l10", "t": "Particiones y LVM", "min": 10, "banco": "Montaje y sistemas de archivos", "resumen": "La tabla de particiones divide el disco; LVM agrega una capa para poder crecer, reducir y mover espacio sin reparticionar.", "cuerpo": [{"tipo": "tabla", "cab": ["Capa", "Qué es"], "filas": [["Tabla de particiones (MBR o GPT)", "Al comienzo del disco: por cada partición, dónde empieza, cuánto mide y de qué tipo es"], ["PV (volumen físico)", "Un disco o partición entregado a LVM"], ["VG (grupo de volúmenes)", "Una reserva única que junta varios PV"], ["LV (volumen lógico)", "Un recorte del VG que se formatea y se monta como si fuera una partición"]]}, {"tipo": "p", "txt": "La ventaja concreta: si el LV de /var se llena, se agranda **en caliente** tomando espacio libre del VG, sin reparticionar y sin reinstalar; incluso se pueden sumar discos nuevos al VG. También permite instantáneas, aprovisionamiento delgado y mover datos entre discos."}, {"tipo": "nota", "tono": "red", "t": "Si se corrompe la tabla de particiones", "txt": "El sistema no sabe qué regiones del disco forman cada partición: el disco parece vacío o sin sistema de archivos, aunque los datos sigan físicamente ahí. Hay que reconstruirla o repararla; conviene tener la estructura respaldada."}], "clave": ["Partición: división del disco. LV: recorte de un VG", "LVM permite crecer en caliente y sumar discos", "Tabla de particiones dañada = disco \"vacío\" con datos adentro"], "trampa": "Confundir el grupo de volúmenes con un volumen lógico. El VG es la reserva; el LV es lo que se formatea.", "parcial": "MCQ de capas de LVM y de qué pasa si se corrompe la tabla de particiones. Es poco frecuente en desarrollo."}], "cubre": "Unidad 4 · E (montaje), H (asignación en disco), I y J (FAT16 y sistemas modernos), K (LVM)"}, {"id": "m4", "titulo": "Bloques, archivos y objetos", "peso": 2, "eje": "Almacenamiento", "porQue": "Son 18 MCQ y 7 de desarrollo: no es de los temas que más pesa, pero tiene preguntas muy fáciles si tenés clara la tabla de los tres modelos.", "min": 45, "banco": "Bloques, archivos y objetos", "lecciones": [{"id": "l11", "t": "Los tres modelos de almacenamiento", "min": 12, "banco": "Bloques, archivos y objetos", "resumen": "Bloques es un arreglo plano; archivos es un árbol con permisos; objetos es un espacio de nombres plano con clave y metadatos.", "cuerpo": [{"tipo": "tabla", "cab": ["", "Bloques", "Archivos", "Objetos"], "filas": [["Unidad", "Bloque numerado", "Archivo con ruta jerárquica", "Objeto con clave"], ["Organización", "Arreglo plano de bloques", "Árbol de directorios", "Espacio de nombres plano dentro de un contenedor"], ["Acceso", "Llamadas al sistema o protocolo de red", "Llamadas al sistema o NFS/SMB", "API HTTP (GET, PUT, DELETE)"], ["Modificación parcial", "Sí, cualquier tramo", "Sí, cualquier parte", "No: se reemplaza el objeto entero"], ["Metadatos", "Ninguno propio", "Fijos: tamaño, fechas, permisos", "Fijos más pares nombre-valor del usuario"], ["Escala típica", "Un volumen por servidor", "Millones de archivos", "Miles de millones, sin límite práctico"], ["Uso natural", "Bases de datos, máquinas virtuales", "Directorios de trabajo, recursos compartidos", "Respaldos, imágenes, videos, logs"]]}, {"tipo": "p", "txt": "Las dos consecuencias que siempre se preguntan: el almacenamiento de objetos **no es POSIX** (no hay descriptores, ni posición de lectura, ni bloqueo) y **no permite modificar un byte**: cambiar algo obliga a subir el objeto completo."}, {"tipo": "nota", "tono": "teal", "t": "Las tres virtudes de objetos", "txt": "Escala prácticamente ilimitada, durabilidad muy alta por redundancia distribuida, y se accede desde cualquier lado pagando por lo usado. Por eso es el lugar natural para respaldos y contenido estático, y no para instalar un sistema operativo."}], "clave": ["Bloques: plano. Archivos: árbol. Objetos: clave en un espacio plano", "Objetos no permite modificar por partes ni es POSIX", "Objetos escala a miles de millones; archivos a millones"], "trampa": "Decir que un bucket es una carpeta. La consola lo muestra como carpeta, pero adentro hay un espacio plano de claves: \"carpetas\" son solo prefijos del nombre.", "parcial": "MCQ de \"elegir el modelo según el problema\" y de \"por qué no sirve objetos para instalar un SO\". También el objeto de S3 desarmado en tres partes: datos, clave, metadatos."}, {"id": "l12", "t": "Arquitectura y operación del almacenamiento de objetos", "min": 12, "banco": "Bloques, archivos y objetos", "resumen": "Por dentro: capa de pedidos que reparte, nodos de almacenamiento, redundancia con códigos de borrado y verificación de integridad.", "cuerpo": [{"tipo": "lista", "items": ["**Capa de pedidos:** recibe las operaciones de los clientes y las reparte entre los nodos de almacenamiento.", "**Nodos de almacenamiento:** guardan los datos en muchos servidores; la clave permite encontrarlos sin un índice central.", "**Redundancia:** por códigos de borrado o replicación, no por RAID de un solo equipo.", "**Verificación de integridad:** sumas de verificación por objeto, así se detecta un dato corrupto.", "**Versionado, clases de almacenamiento, bloqueo de objetos, cifrado y enlaces firmados:** las funciones que suelen preguntar como \"qué agrega el modelo\"."]}, {"tipo": "h", "txt": "Cuándo elegir cada uno"}, {"tipo": "tabla", "cab": ["Necesidad", "Modelo"], "filas": [["Instalar un SO, una base de datos con escritura aleatoria", "Bloques"], ["Varios servidores escribiendo los mismos archivos, con permisos y bloqueo", "Archivos (NFS o Samba)"], ["Guardar respaldos, videos, imágenes o millones de archivos inmutables", "Objetos"]]}, {"tipo": "nota", "tono": "gold", "t": "Las limitaciones que se preguntan", "txt": "En objetos: latencia de red en cada operación, no hay renombrado (mover es copiar y borrar) y la única forma de buscar es por prefijo de la clave: no hay consultas por contenido."}], "clave": ["Capa de pedidos + nodos + redundancia distribuida", "Respaldos y contenido estático: objetos. Escritura aleatoria: bloques", "Renombrar en objetos = copiar y borrar"], "trampa": "Pensar que la durabilidad alta protege del borrado accidental. La durabilidad protege del fallo del hardware; contra el borrado humano está el versionado y el bloqueo de objetos.", "parcial": "Aparece en MCQ con casos concretos del laboratorio (SFTP, Samba, NFS, S3) y en desarrollo pidiendo elegir modelo para un escenario."}], "cubre": "Unidad 4 · L (almacenamiento de objetos) y su comparación con bloques y archivos"}, {"id": "m5", "titulo": "El shell y los comandos", "peso": 1, "eje": "Shell, API y scripting", "porQue": "Es el tema con más MCQ del banco (27) y aparece también en desarrollo: redirección, tuberías, comillas, scripts y códigos de salida.", "min": 70, "banco": "Shell y comandos", "lecciones": [{"id": "l13", "t": "El ciclo del shell y las familias de intérpretes", "min": 11, "banco": "Shell y comandos", "resumen": "El shell es un programa de usuario que lee, interpreta, ejecuta y espera. No es el sistema operativo.", "cuerpo": [{"tipo": "lista", "items": ["Muestra el indicador y lee una línea de la entrada estándar.", "Separa en palabras, expande comodines, variables y sustituciones.", "Si el comando es **interno** (cd, exit, export, alias) lo ejecuta él mismo.", "Si es **externo**, crea un proceso hijo con `fork`, en el hijo hace `exec` del programa y en el padre espera con `wait`.", "Recoge el código de salida (0 = bien) y vuelve al principio."]}, {"tipo": "nota", "tono": "teal", "t": "Por qué cd tiene que ser interno", "txt": "`cd` cambia el directorio de trabajo **del proceso**. Si fuera un programa externo, cambiaría el directorio del hijo y al terminar el padre seguiría donde estaba: el cambio se perdería. Lo mismo pasa con las variables de entorno heredadas."}, {"tipo": "tabla", "cab": ["Shell", "Para qué"], "filas": [["sh", "El estándar POSIX: lo que hay que usar en scripts portables. /bin/sh apunta a alguno de los otros"], ["bash", "Shell por omisión en la mayoría de Linux; superconjunto de sh con arreglos y más"], ["dash", "Mínimo y rápido: arranca antes, por eso es /bin/sh en Debian y Ubuntu"], ["zsh", "Muy cómodo interactivo, por omisión en macOS"], ["fish", "Amigable pero no compatible con sh"], ["ksh y csh/tcsh", "Clásicos de UNIX; csh se desaconseja para scripts"]]}], "clave": ["Shell = intérprete de usuario, no kernel", "Internos vs externos: fork + exec + wait", "sh es el estándar POSIX; /bin/sh puede ser dash o bash"], "trampa": "Decir que el shell \"es parte del sistema operativo\". Es un programa común, reemplazable, que corre en espacio de usuario.", "parcial": "MCQ sobre qué es el shell, qué hace un comando interno, y por qué un script con #!/bin/sh puede fallar con sintaxis de bash."}, {"id": "l14", "t": "Metacaracteres, redirección y tuberías", "min": 17, "banco": "Shell y comandos", "resumen": "Todos los programas tienen tres descriptores: 0 entrada, 1 salida, 2 error. Redirigir es cambiar de dónde leen o adónde escriben.", "cuerpo": [{"tipo": "tabla", "cab": ["Notación", "Qué hace"], "filas": [[">", "Redirige la salida estándar al archivo; lo crea o lo vacía"], [">>", "Agrega al final sin borrar lo anterior"], ["<", "Toma la entrada del archivo en lugar del teclado"], ["2>", "Redirige solo los errores a un archivo"], ["&> o 2>&1", "Resultados y errores al mismo destino"], ["2> /dev/null", "Descarta los errores"], ["|", "Conecta la salida del primero con la entrada del segundo"], ["&", "Ejecuta en segundo plano sin esperar"]]}, {"tipo": "codigo", "txt": "$ ls -l > lista.txt 2> errores.txt    # separadas\n$ comando &> todo.log                   # juntas\n$ ps aux | grep apache | head -3       # tubería\n$ find . -name \"*.log\" | wc -l         # contar"}, {"tipo": "h", "txt": "Comillas y expansiones"}, {"tipo": "tabla", "cab": ["Elemento", "Efecto"], "filas": [["Comillas simples '...'", "Nada se expande: todo literal"], ["Comillas dobles \"...\"", "Se expanden variables y sustituciones, no los comodines"], ["$VAR", "Sustituye el valor de la variable"], ["$(comando) o `comando`", "Sustituye por la salida del comando"], ["* ? [abc]", "Comodines que **el shell** expande a nombres de archivo antes de ejecutar"], ["\\$", "Escapa el carácter: lo vuelve literal"]]}, {"tipo": "nota", "tono": "gold", "t": "Globbing no es expresión regular", "txt": "`*.txt` lo expande el **shell**, sobre nombres de archivo, y solo tiene tres comodines. Una expresión regular la interpreta **el programa** (`grep`, `sed`) sobre el contenido del texto y es mucho más expresiva. Confundir quién expande qué es error clásico."}, {"tipo": "nota", "tono": "teal", "t": "Códigos de salida", "txt": "Cada comando deja un código en `$?`: 0 es éxito. `a && b` ejecuta b solo si a salió bien; `a || b` solo si a falló. Es la forma de encadenar lógica de una línea."}], "clave": ["0 entrada, 1 salida, 2 error", "> trunca, >> agrega, 2> solo errores, | conecta", "Comillas simples: nada se expande. Dobles: variables sí, comodines no"], "trampa": "Pensar que `>` y `>>` son lo mismo. `>` vacía el archivo primero: si redirigís sobre el mismo archivo que estás leyendo, lo perdés.", "parcial": "Tema de MCQ y de desarrollo (\"explicar > y >>\", \"qué hace esta tubería\", \"por qué no se expande dentro de comillas simples\")."}, {"id": "l15", "t": "Scripts: variables, condicionales, buenas prácticas", "min": 14, "banco": "Shell y comandos", "resumen": "Un script es un archivo de texto con comandos que el shell ejecuta en orden. La primera línea y el permiso de ejecución son la mitad de los errores.", "cuerpo": [{"tipo": "lista", "items": ["**Shebang:** la primera línea `#!/bin/bash` indica con qué intérprete ejecutarlo. Sin ella el sistema no sabe con qué correrlo.", "**Permiso:** hace falta `chmod +x` y llamarlo con `./script.sh` para que no lo busque en PATH.", "**Variables:** `NOMBRE=valor` sin espacios alrededor del `=`; se usa `$NOMBRE`. `export` la hace heredable por los hijos.", "**Parámetros:** `$1`, `$2`, `$#` cantidad, `$@` todos, `$?` último código de salida.", "**Condicionales:** `if [ \"$x\" = \"y\" ]; then ... elif ... else ... fi`, y `case` para varios valores.", "**Bucles:** `for f in *.txt; do ...; done` y `while read -r linea; do ...; done < archivo`.", "**Funciones:** `nombre() { ... }`, con `$1` como parámetro."]}, {"tipo": "nota", "tono": "red", "t": "Buenas prácticas que se preguntan", "txt": "Usar `set -e` (corta si un comando falla), `set -u` (error si usás una variable vacía), citar variables entre comillas para que no se separen por espacios, y usar rutas absolutas en tareas programadas porque el cron no tiene tu directorio de trabajo."}, {"tipo": "p", "txt": "Y el contraste con PowerShell que piden comparar: en el shell de UNIX la tubería transporta **texto** línea por línea y se extrae con `cut`, `grep`, `sed`; en PowerShell transporta **objetos** con propiedades tipadas y se accede por nombre (`Select-Object`). Lo primero es universal pero frágil ante cambios de formato; lo segundo es más robusto pero verboso."}], "clave": ["Shebang + chmod +x + ./script.sh", "$1, $#, $@, $?; if/case/for/while", "Tubería de texto (UNIX) contra objetos (PowerShell)"], "trampa": "Dejar espacios en `NOMBRE = valor`: el shell lo interpreta como comando. Y olvidar citar variables: sin comillas, un nombre con espacios se parte en dos argumentos.", "parcial": "Suele venir un script con errores para encontrar o pedir que compares bash y PowerShell en las tuberías."}, {"id": "l26", "t": "Los comandos que hay que reconocer", "min": 12, "banco": "Shell y comandos", "resumen": "No hay que memorizar el manual: hay que reconocer qué hace cada comando y elegir el correcto entre cuatro opciones.", "cuerpo": [{"tipo": "p", "txt": "La sección D de la unidad 5 es un catálogo largo. En el parcial no piden escribir comandos de memoria: piden **reconocer** para qué sirve uno o elegir cuál usaría. Alcanza con esta tabla, ordenada por para qué lo usarías."}, {"tipo": "tabla", "cab": ["Para…", "Comando", "Detalle que se pregunta"], "filas": [["Moverme y ver dónde estoy", "`pwd` `cd` `ls` `tree`", "`cd -` vuelve al directorio anterior; `ls -l` muestra permisos y enlaces; `ls -i` el i-nodo"], ["Ver metadatos completos", "`stat`", "Devuelve i-nodo, enlaces, permisos y fechas **sin leer el contenido**: es el comando del tema i-nodos"], ["Copiar, mover, borrar", "`cp` `mv` `rm`", "`mv` dentro del mismo FS es instantáneo; `rm` no tiene papelera"], ["Crear y enlazar", "`mkdir` `rmdir` `ln` `touch`", "`ln` sin -s es duro, con -s es simbólico; `touch` crea vacío o actualiza fecha"], ["Empaquetar", "`tar`", "Empaqueta y desempaqueta árboles de directorios"], ["Ver y cortar texto", "`cat` `less` `head` `tail`", "`tail -f` queda mostrando lo que se agrega: es el comando de los logs"], ["Contar y filtrar", "`wc` `grep`", "`wc -l` cuenta líneas; `grep` busca líneas que coincidan con un patrón"], ["Ordenar y cortar columnas", "`sort` `cut` `tr`", "`cut` extrae columnas; `tr` traduce o borra caracteres"], ["Editar el flujo", "`sed` `awk`", "`sed` sustituye, borra e inserta; `awk` procesa por campos con su propio lenguaje"], ["Comparar", "`diff`", "Muestra las diferencias entre dos archivos"], ["Buscar archivos", "`find`", "Busca por nombre, tamaño, fecha, permisos o dueño"], ["Ubicar un ejecutable", "`which`", "Dice qué binario se usaría según PATH"], ["Procesos", "`ps` `top` `kill` `jobs` `fg` `nohup`", "`kill` manda señales (sin opciones pide terminar); `nohup` sobrevive al cierre de sesión"], ["Permisos e identidad", "`chmod` `chown` `umask` `id` `sudo`", "`id` muestra la identidad efectiva; `sudo` ejecuta como otro usuario"], ["Discos y sistema", "`df` `du` `mount` `umount` `lsblk` `uname`", "`df` espacio por sistema de archivos; `du` espacio ocupado por árbol; `df -i` i-nodos libres"], ["Red", "`ping` `ip` `ss` `curl` `ssh` `scp` `rsync`", "`ss` muestra puertos en escucha; `rsync` copia solo lo que cambió"], ["Ayuda", "`man` `--help` `apropos`", "`apropos` busca en los títulos de todas las páginas del manual"]]}, {"tipo": "nota", "tono": "gold", "t": "Los tres pares que se confunden", "txt": "`df` contra `du` (sistema de archivos contra árbol), `which` contra `find` (ejecutable en PATH contra búsqueda en el árbol), y `ss` contra `curl` (quién escucha contra hacer un pedido)."}, {"tipo": "nota", "tono": "blue", "t": "Cómo estudiarlo", "txt": "No leas la tabla dos veces seguidas. Tapá la segunda columna y decí el comando en voz alta: lo que no te salga, marcalo y volvé solo a eso."}], "clave": ["`stat` para metadatos; `ls -i` para el i-nodo", "`df` es del sistema de archivos, `du` de un árbol de directorios", "`tail -f` para logs, `find` para buscar archivos, `which` para ejecutables"], "trampa": "Confundir `df` con `du`, o `which` con `find`. También creer que `kill` \"mata\" siempre: manda una señal, y sin opciones pide terminar.", "parcial": "Aparece como MCQ de \"¿qué hace este comando?\" o \"¿cuál usaría para…?\". Es de las preguntas más fáciles de asegurar del parcial."}], "cubre": "Unidad 5 · A, B, C y D (qué es un shell, familias, ciclo, comandos) e I (shellscripting)"}, {"id": "m6", "titulo": "API, llamadas al sistema e interfaz gráfica", "peso": 2, "eje": "Shell, API y scripting", "porQue": "16 MCQ y 6 de desarrollo. Lo importante es tener clarísima la diferencia entre llamada al sistema, biblioteca y API, y el contraste UNIX/Windows.", "min": 45, "banco": "API y llamadas al sistema", "lecciones": [{"id": "l16", "t": "Espacio de usuario, llamadas al sistema y bibliotecas", "min": 16, "banco": "API y llamadas al sistema", "resumen": "El programa corre en espacio de usuario; cuando necesita hardware o una operación protegida, pide un servicio al kernel.", "cuerpo": [{"tipo": "tabla", "cab": ["Concepto", "Qué es"], "filas": [["Llamada al sistema", "El pedido concreto al kernel: open, read, write, fork, exec, wait, kill, mkdir, chmod, mount"], ["Función de biblioteca", "Código que se enlaza al programa y corre en espacio de usuario: printf, malloc, fopen"], ["API", "El contrato que una biblioteca o un sistema ofrece al programador; POSIX o Win32 son API"], ["ABI", "El contrato a nivel binario: cómo se pasan los argumentos en registros; define si un binario corre sin recompilar"]]}, {"tipo": "p", "txt": "La relación: `printf` es una función de biblioteca que formatea en memoria y por dentro termina usando la llamada al sistema `write`. Por eso se puede reemplazar la biblioteca sin cambiar el programa, y por eso una biblioteca puede usar **varias** llamadas al sistema."}, {"tipo": "h", "txt": "Recorrido de una lectura"}, {"tipo": "lista", "items": ["El programa llama a `read` (biblioteca) en espacio de usuario.", "La biblioteca arma el pedido con los argumentos y ejecuta la instrucción de llamada al sistema: hay un **cambio controlado de nivel**.", "El kernel valida el pedido y los permisos sobre ese archivo.", "Consulta al sistema de archivos y lee del dispositivo.", "Copia los datos al espacio de memoria del programa y devuelve la cantidad de bytes leídos."]}, {"tipo": "nota", "tono": "teal", "t": "Para qué sirve la API", "txt": "Portabilidad y protección: el programa no depende del hardware concreto y no puede hacer lo que quiera. La memoria virtual y el cambio de nivel impiden que un proceso toque la memoria de otro; si lo intenta, el kernel lo mata con un error de segmentación."}], "clave": ["Llamada al sistema = pedido al kernel; biblioteca = código de usuario", "printf usa write por dentro", "API = contrato; ABI = cómo se pasa a nivel binario"], "trampa": "Decir que \"printf es una llamada al sistema\". No: es la función de biblioteca la que hace la llamada (write).", "parcial": "Pregunta muy repetida en MCQ: diferencia entre llamada al sistema y función de biblioteca, y qué permite la API (portabilidad y protección)."}, {"id": "l17", "t": "Interfaz gráfica y el contraste UNIX / Windows", "min": 14, "banco": "API y llamadas al sistema", "resumen": "La GUI es un conjunto de programas de usuario sobre las mismas llamadas al sistema. Y UNIX y Windows reparten distinto el núcleo y la API.", "cuerpo": [{"tipo": "tabla", "cab": ["Capa de la GUI", "Responsabilidad"], "filas": [["Controlador de video", "Habla con el hardware"], ["Servidor gráfico o compositor", "Dibuja y compone las ventanas"], ["Administrador de ventanas", "Decide posición, tamaño, foco"], ["Bibliotecas de artefactos", "Ofrecen los controles (botones, listas)"], ["Aplicación", "Crea sus ventanas y reacciona a eventos"]]}, {"tipo": "p", "txt": "El control es por **eventos**: hay un bucle que espera eventos (tecla, clic, redibujado) y despacha cada uno al manejador de la ventana que corresponde. Debajo de toda esa fachada se siguen usando llamadas al sistema para leer el teclado, escribir en el dispositivo de video o comunicarse con el servidor gráfico."}, {"tipo": "tabla", "cab": ["Aspecto", "UNIX", "Windows"], "filas": [["Núcleo y API", "Núcleo chico de llamadas al sistema, más bibliotecas y programas alrededor", "API Win32 amplia, que expone miles de operaciones"], ["Interfaz gráfica", "Fuera del sistema: programas de usuario reemplazables", "Forma parte de la misma API"], ["Creación de proceso", "Dos llamadas: fork (copia) y exec (carga el programa)", "Una sola llamada completa y parametrizada"], ["Espacio de nombres", "Un único árbol donde se monta todo", "Varias raíces por letra de unidad"], ["Permisos", "Tres ternas de bits sobre dueño, grupo y resto", "ACL desde el diseño"], ["Configuración", "Archivos de texto plano", "Base de datos jerárquica (registro)"]]}, {"tipo": "nota", "tono": "gold", "t": "Cómo se pregunta", "txt": "Las dos que más caen: \"¿en qué se diferencia la creación de procesos?\" (dos llamadas contra una) y \"¿la GUI forma parte del kernel?\" (no: es espacio de usuario, y en UNIX es reemplazable)."}], "clave": ["GUI = programas de usuario sobre las mismas llamadas al sistema", "Control por eventos: un bucle que despacha", "UNIX: fork + exec y núcleo chico; Windows: una llamada y API amplia"], "trampa": "Ubicar la interfaz gráfica dentro del kernel. En UNIX no lo está: podés correr el sistema sin ella.", "parcial": "MCQ de comparación y alguna de \"dónde está la GUI\". En desarrollo puede pedir el recorrido de un clic hasta el kernel."}], "cubre": "Unidad 5 · E, F y G (interfaz gráfica, llamadas al sistema y API, UNIX contra Windows)"}, {"id": "m7", "titulo": "Criptografía, SSH y certificados", "peso": 1, "eje": "Seguridad y acceso remoto", "porQue": "24 MCQ y 15 de desarrollo: es uno de los dos temas más grandes del parcial junto con Kubernetes. Y es fácil porque las ideas son pocas y se repiten.", "min": 75, "banco": "Criptografía y certificados", "lecciones": [{"id": "l18", "t": "Simétrico, asimétrico y el esquema híbrido", "min": 14, "banco": "Criptografía y certificados", "resumen": "Simétrico: una sola clave, rápido. Asimétrico: par de claves, lento. En la práctica se combinan: lo asimétrico acuerda una clave de sesión y después todo va simétrico.", "cuerpo": [{"tipo": "tabla", "cab": ["", "Simétrico", "Asimétrico"], "filas": [["Claves", "Una sola, compartida", "Par: pública y privada"], ["Velocidad", "Rápido: sirve para el volumen", "Lento: no sirve para todo el tráfico"], ["Problema que deja", "Cómo compartir la clave sin que la vean", "Ninguno de distribución, pero es lento"], ["Ejemplos", "AES-256-GCM, ChaCha20-Poly1305", "RSA, ECDSA, Ed25519, Diffie-Hellman"]]}, {"tipo": "p", "txt": "El par de claves se usa para dos cosas distintas: **cifrar** (cifro con la pública del destinatario, solo él lo abre con su privada) y **firmar** (firmo con mi privada y cualquiera verifica con mi pública). El resumen de siempre: *la clave privada nunca sale del equipo*."}, {"tipo": "h", "txt": "El esquema híbrido, paso a paso"}, {"tipo": "lista", "items": ["Las partes se identifican y acuerdan una **clave de sesión** usando criptografía asimétrica (Diffie-Hellman o equivalentes).", "Con esa clave simétrica cifran **todos** los datos de la conexión.", "Las claves de sesión se descartan al terminar e incluso se renuevan durante la conexión.", "Eso da **forward secrecy**: si mañana roban la clave privada del servidor, no pueden descifrar las sesiones de ayer."]}, {"tipo": "nota", "tono": "gold", "t": "Lo que se pregunta de RSA", "txt": "RSA de 1024 bits **no** es aceptable hoy: se pide 3072 o más. Ed25519 es la recomendación actual para claves SSH, es mucho más corta a igual seguridad y su punto débil histórico es la implementación. Y el key exchange está migrando a algoritmos poscuánticos porque un atacante puede grabar el tráfico cifrado hoy y descifrarlo cuando tenga una computadora cuántica."}], "clave": ["Simétrico una clave y rápido; asimétrico un par y lento", "Híbrido: asimétrico acuerda la clave, simétrico lleva los datos", "Firmar = privada; verificar = pública. RSA 1024 no, 3072 sí"], "trampa": "Decir \"se cifra con la privada\". Se cifra con la **pública** del destinatario; con la privada se **firma**.", "parcial": "Casi seguro: explicar el esquema híbrido o por qué no se cifra toda la sesión con asimétrico."}, {"id": "l19", "t": "Funciones de hash y firmas", "min": 10, "banco": "Criptografía y certificados", "resumen": "Un hash resume cualquier contenido en una huella de tamaño fijo. Es de un solo sentido y sirve para integridad, contraseñas y firmas.", "cuerpo": [{"tipo": "p", "txt": "Una función de hash criptográfica toma un contenido de cualquier tamaño y devuelve una huella de longitud fija. Tiene tres propiedades: es determinista (mismo contenido, mismo hash), es de **un solo sentido** (del hash no se vuelve al contenido) y **resiste colisiones** (es inviable encontrar dos contenidos con el mismo hash)."}, {"tipo": "tabla", "cab": ["Uso", "Cómo"], "filas": [["Verificar integridad", "Se compara el hash de lo bajado con el publicado: si cambió un byte, cambia"], ["Guardar contraseñas", "Se guarda el hash (con sal y función lenta), nunca la contraseña"], ["Firmas digitales", "Se firma el **hash** del mensaje, no el mensaje entero"]]}, {"tipo": "nota", "tono": "teal", "t": "Qué garantiza una firma", "txt": "Autenticidad (quién lo mandó, porque solo él tiene la privada) e **integridad** (no fue alterado). Lo que **no** garantiza es confidencialidad: el mensaje puede ir en claro, la firma va aparte."}], "clave": ["Hash: huella de tamaño fijo, un solo sentido, resistente a colisiones", "Sirve para integridad, contraseñas y firmas", "La firma da autenticidad e integridad, no confidencialidad"], "trampa": "Responder que el hash cifra. No cifra: no se puede descifrar. Y \"hash = cifrado sin clave\" es la respuesta que buscan los distractores falsos.", "parcial": "MCQ de propiedades del hash y de \"qué garantiza además de la autenticidad\" (integridad)."}, {"id": "l20", "t": "SSH: las cuatro etapas y la autenticación", "min": 14, "banco": "Criptografía y certificados", "resumen": "Identificación del servidor, acuerdo de clave, autenticación del usuario y canal cifrado. El punto débil es siempre el primero: confiar en la primera conexión.", "cuerpo": [{"tipo": "lista", "items": ["**1. Identificación del servidor:** el servidor presenta su clave. El cliente la compara con el fingerprint guardado en `~/.ssh/known_hosts`.", "**2. Acuerdo de clave:** se negocia la clave de sesión con Diffie-Hellman.", "**3. Autenticación del usuario:** por contraseña, por clave pública o por certificado.", "**4. Canal cifrado:** todo lo que sigue (comandos, SFTP, túneles) va adentro."]}, {"tipo": "tabla", "cab": ["Método", "Cómo funciona", "Evaluación"], "filas": [["Contraseña", "Viaja dentro del canal ya cifrado", "Simple, débil ante adivinación"], ["Clave pública", "La pública del usuario se copia a ~/.ssh/authorized_keys del servidor", "El recomendado: la privada nunca viaja"], ["Certificado", "Una autoridad firma la clave pública del usuario", "Escala a muchos usuarios; vida corta"], ["Segundo factor", "Un dispositivo físico o un código temporal", "Recomendado para accesos administrativos"]]}, {"tipo": "codigo", "txt": "$ ssh-keygen -t ed25519 -C \"ana@utec\"   # genera el par\n$ ssh-copy-id ana@servidor              # instala la pública\n$ ssh -i ~/.ssh/id_ed25519 ana@servidor # usa una clave puntual\n$ ssh-keygen -lf ~/.ssh/id_ed25519.pub  # muestra el fingerprint"}, {"tipo": "nota", "tono": "red", "t": "La advertencia de clave cambiada", "txt": "\"REMOTE HOST IDENTIFICATION HAS CHANGED\" no significa que te estén atacando: puede ser que reinstalaron el servidor. Pero **hay que tratarlo como un posible ataque de intermediario** hasta verificarlo por otro canal. Es el TOFU (trust on first use): confiás en la primera vez."}, {"tipo": "nota", "tono": "gold", "t": "Permisos de la clave privada", "txt": "SSH se niega a usar una clave privada con permisos 644: si otros pueden leerla, la clave está comprometida. Tiene que ser 600 (o 400) y la carpeta `~/.ssh` 700."}], "clave": ["Cuatro etapas: identificación, acuerdo de clave, autenticación, canal", "Clave pública: la privada nunca viaja; se copia la pública al servidor", "known_hosts guarda fingerprints; si cambia, se avisa"], "trampa": "Confundir qué se copia al servidor con `ssh-copy-id`: se copia la **pública** a authorized_keys. Copiar la privada es un error grave.", "parcial": "Tema fuerte en MCQ y en desarrollo. Las dos preguntas clásicas: qué guarda known_hosts y qué significa la advertencia de clave cambiada."}, {"id": "l21", "t": "Certificados y cadena de confianza (SSH y TLS)", "min": 14, "banco": "Criptografía y certificados", "resumen": "El certificado ata un nombre a una clave pública y lo firma una autoridad. En TLS la confianza viene de las raíces que trae el navegador; en SSH, de la autoridad interna.", "cuerpo": [{"tipo": "p", "txt": "Un certificado digital es una clave pública más los datos de a quién pertenece y hasta cuándo vale, firmado por una autoridad. La **cadena de confianza** funciona así: una autoridad raíz firma a una intermedia, la intermedia firma al certificado del sitio, y el cliente acepta porque la raíz ya viene en su lista de confianza."}, {"tipo": "tabla", "cab": ["", "Certificados SSH", "Certificados X.509 de TLS"], "filas": [["Qué garantiza", "Que una clave pertenece a una identidad dentro de la organización", "Que un nombre de dominio corresponde a una clave pública"], ["Quién firma", "Una autoridad interna de la propia organización", "Autoridades públicas cuyas raíces vienen preinstaladas"], ["Contenido", "Clave pública, identidades autorizadas, período", "Clave pública, dominios, emisor, validez"], ["Revocación", "Certificados de vida muy corta", "Revocación y emisión automatizada (ACME)"]]}, {"tipo": "nota", "tono": "red", "t": "El candado del navegador", "txt": "HTTPS garantiza que la conexión está cifrada y que el sitio controla ese nombre de dominio. **No** garantiza que el sitio sea honesto: un sitio de phishing puede tener un certificado válido para su propio dominio. Por eso hay que mirar el dominio, y desconfiar de los parecidos."}], "clave": ["Certificado = clave pública + identidad + validez, firmado", "Cadena: raíz → intermedia → sitio", "El candado no dice si el sitio es confiable, solo que el canal es seguro"], "trampa": "Creer que el candado valida la honestidad del sitio. Valida el canal y el control del dominio, nada más.", "parcial": "MCQ sobre qué garantiza el candado y sobre la cadena de confianza; también la comparación SSH contra TLS en desarrollo."}], "cubre": "Unidad 5 · H (criptografía, hash, SSH, certificados y poscuántica)"}, {"id": "m8", "titulo": "Laboratorio de Kubernetes", "peso": 1, "eje": "Laboratorio K3s", "porQue": "22 MCQ y 19 de desarrollo: es el tema más preguntado en desarrollo del banco. Y en el parcial del laboratorio se pregunta mucho el \"por qué\" de las decisiones raras (hostNetwork, noatime, swap, dos configuraciones de registry).", "min": 75, "banco": "Laboratorio de Kubernetes", "lecciones": [{"id": "l22", "t": "Arquitectura del laboratorio de punta a punta", "min": 13, "banco": "Laboratorio de Kubernetes", "resumen": "Un Fedora en un pendrive, K3s adentro, namespace lab-so, y cada servicio publicado en su puerto.", "cuerpo": [{"tipo": "lista", "items": ["**Host:** Fedora Workstation instalado en un pendrive USB 3.x, con Docker como demonio para construir imágenes.", "**Cluster:** K3s, una distribución liviana de Kubernetes, con el namespace `lab-so` para todo el trabajo.", "**Registry propio:** en `localhost:30500`, para publicar las imágenes y que el cluster las baje sin depender de internet.", "**Proxy de entrada:** Traefik en los puertos 80 y 443, con Gateway API para enrutar el tráfico HTTP.", "**Montaje persistente:** una partición del pendrive montada con `noatime,commit=60` para que los datos sobrevivan."]}, {"tipo": "tabla", "cab": ["Servicio", "Puerto", "Qué es"], "filas": [["SFTP", "30022", "Servidor de archivos sobre SSH (OpenSSH)"], ["Samba 4", "30445", "Carpetas compartidas con SMB/CIFS, el protocolo nativo de Windows"], ["NFSv4", "30049", "Exportación de archivos estándar de UNIX"], ["Gitea", "30300", "Servidor Git liviano"], ["GitLab CE", "30080", "Servidor Git completo"], ["Asterisk", "5060", "Central telefónica SIP"], ["Uptime Kuma", "30301", "Panel de monitoreo"], ["Traefik", "80 y 443", "Entrada HTTP/HTTPS"]]}, {"tipo": "nota", "tono": "teal", "t": "La idea que ordena todo", "txt": "El laboratorio es un caso de **\"todo autocontenido\"**: registry propio para no depender de internet, almacenamiento en el mismo pendrive, y servicios de red clásicos (archivos, teléfono, git, monitoreo) montados sobre Kubernetes para mostrar que la plataforma no es solo para web."}], "clave": ["Fedora en pendrive + K3s + namespace lab-so", "Registry propio en 30500; Traefik en 80/443", "SFTP 30022, Samba 30445, NFS 30049, Gitea 30300"], "trampa": "Mezclar los puertos. Si dudás, acordate del patrón: los NodePort viven entre 30000 y 32767.", "parcial": "MCQ de qué hace cada servicio o en qué puerto está. En desarrollo, explicar la arquitectura completa."}, {"id": "l23", "t": "Objetos de Kubernetes: Pod, Deployment, Service", "min": 17, "banco": "Laboratorio de Kubernetes", "resumen": "El Deployment declara réplicas y versión; crea Pods con etiquetas; el Service los agrupa y les da una dirección estable.", "cuerpo": [{"tipo": "tabla", "cab": ["Objeto", "Qué es"], "filas": [["Pod", "La unidad mínima que Kubernetes programa: uno o más contenedores que comparten red y volúmenes"], ["Deployment", "Declara cuántas réplicas y qué imagen; crea y reemplaza Pods"], ["Service", "Dirección estable que reparte el tráfico entre los Pods que tienen cierta etiqueta"], ["ConfigMap", "Configuración separada de la imagen, inyectada como archivo o variable"], ["PVC", "Pedido de almacenamiento cuyo contenido sobrevive a la vida del Pod"], ["Namespace", "División lógica para agrupar y aislar nombres y recursos"]]}, {"tipo": "h", "txt": "Los tipos de Service que importan"}, {"tipo": "tabla", "cab": ["Tipo", "Qué hace", "En el laboratorio"], "filas": [["ClusterIP", "Dirección interna del cluster, solo accesible desde adentro", "Los servicios web que publica Traefik"], ["NodePort", "Abre un puerto fijo en **todos** los nodos, en el rango 30000-32767", "SFTP 30022, Samba 30445, NFS 30049"], ["LoadBalancer", "Pide un balanceador externo al proveedor", "No aplica en un cluster local"]]}, {"tipo": "p", "txt": "Por eso la web se publica con **ClusterIP + Traefik** (el proxy recibe el puerto 80 y enruta por ruta) y los protocolos que no son HTTP se publican con **NodePort**: Traefik solo entiende HTTP/HTTPS, no puede enrutar SFTP ni SMB."}, {"tipo": "nota", "tono": "gold", "t": "Escalar a 0 contra borrar", "txt": "Escalar un Deployment a 0 réplicas **apaga** los Pods pero conserva el objeto: la configuración y el historial quedan, y con volver a 1 arranca de nuevo. Borrar el Deployment elimina el objeto entero y con él la definición."}, {"tipo": "nota", "tono": "teal", "t": "Rolling update", "txt": "Pasar de v1 a v2 con rolling update reemplaza los Pods **de a poco**, manteniendo disponibilidad. Si la nueva versión falla, se puede volver a la anterior con `kubectl rollout undo`."}], "clave": ["Deployment declara, Pod ejecuta, Service publica por etiqueta", "NodePort abre 30000-32767 en cada nodo; ClusterIP es interno", "Rolling update: reemplazo gradual sin cortar el servicio"], "trampa": "Decir que un Service \"crea\" los Pods. No: los selecciona por etiqueta. Los crea el Deployment.", "parcial": "Tema central. MCQ de qué es cada objeto y de qué tipo de Service usa cada servicio, con el porqué."}, {"id": "l24", "t": "Ciclo de vida de una imagen: build, tag, push, deploy", "min": 13, "banco": "Laboratorio de Kubernetes", "resumen": "Cinco pasos: construir, etiquetar con el nombre del registry, publicar, desplegar y enrutar.", "cuerpo": [{"tipo": "lista", "items": ["`docker build -t mi-app:v1 .` construye la imagen capa por capa, desde el Dockerfile.", "`docker tag mi-app:v1 localhost:30500/utec/mi-app:v1` **no duplica nada**: agrega otro nombre a la misma imagen, indicando el registry de destino.", "`docker push localhost:30500/utec/mi-app:v1` sube las capas al registry del cluster.", "El Deployment pide esa imagen; containerd, dentro de K3s, la descarga y crea los Pods.", "El Service la agrupa y Traefik enruta el tráfico del puerto 80 hacia ese Service."]}, {"tipo": "h", "txt": "Por qué capas"}, {"tipo": "p", "txt": "Cada instrucción del Dockerfile (`FROM`, `COPY`, `RUN`) genera una capa inmutable que se guarda como diferencia sobre la anterior. La imagen es la suma ordenada de esas capas; el contenedor le agrega una capa de escritura encima. Como cada capa se identifica por su contenido, al reconstruir solo se rehacen las que cambiaron: por eso conviene poner primero lo que cambia poco (dependencias) y al final lo que cambia seguido (el código)."}, {"tipo": "nota", "tono": "red", "t": "Por qué hay que configurar dos archivos de registry", "txt": "Son **dos clientes distintos**: el `push` lo hace el demonio de Docker (se configura en `/etc/docker/daemon.json`), y la **descarga** de la imagen para los Pods la hace containerd dentro de K3s (se configura en `/etc/rancher/k3s/registries.yaml`). Cada uno necesita saber que `localhost:30500` es un registry HTTP inseguro. Es una de las preguntas favoritas del laboratorio."}, {"tipo": "nota", "tono": "gold", "t": "tag no es push y no ocupa el doble", "txt": "`docker tag` solo agrega un nombre (un puntero a la misma imagen). `docker push` es el que sube. Y una imagen con dos nombres ocupa lo mismo que con uno."}], "clave": ["build → tag → push → deploy → enrutar", "tag no copia capas: agrega un nombre con el registry de destino", "Docker hace push; containerd de K3s hace pull: dos configuraciones"], "trampa": "Olvidar que hay dos configuraciones de registry. Si solo configurás una, el push anda y los Pods quedan en ImagePullBackOff (o al revés).", "parcial": "Muy probable en desarrollo: \"explicar el camino desde docker build hasta que responde en localhost\" o \"por qué se configuraron dos archivos\"."}, {"id": "l25", "t": "Las decisiones raras del laboratorio (y su porqué)", "min": 17, "banco": "Laboratorio de Kubernetes", "resumen": "hostNetwork en Asterisk, swap desactivado, noatime en el pendrive y guardar fuera del pendrive. Son cuatro \"por qué\" que valen puntos.", "cuerpo": [{"tipo": "h", "txt": "1. hostNetwork: true en Asterisk"}, {"tipo": "p", "txt": "Por omisión cada Pod tiene su propia IP en una red virtual. Con `hostNetwork: true` el Pod usa directamente la IP y la pila de red del nodo. Se usa en Asterisk porque **SIP mete dentro de sus mensajes las direcciones IP y puertos** que después usa RTP para el audio: si la traducción de direcciones de Kubernetes los cambia, el audio se corta. El costo: el Pod compite por los puertos del nodo, pierde aislamiento de red y queda atado a la red de ese nodo."}, {"tipo": "h", "txt": "2. Swap desactivado (incluido zram)"}, {"tipo": "p", "txt": "Kubernetes exige que el nodo no tenga swap porque sus garantías de memoria se calculan sobre memoria **real**: si el kernel puede mandar páginas a swap, un Pod que declaró un límite puede empezar a responder lento en lugar de fallar limpio, y la métrica de memoria deja de ser confiable. zram en Fedora es swap comprimido en RAM y cuenta como swap, así que también se desactiva."}, {"tipo": "h", "txt": "3. noatime,commit=60 en la partición persistente"}, {"tipo": "p", "txt": "`noatime` evita que cada **lectura** actualice la fecha de último acceso en el i-nodo: sin eso, leer un archivo escribe en el pendrive y la memoria flash se desgasta. `commit=60` agrupa los volcados a disco cada 60 segundos para no escribir a cada rato, aceptando que un corte puede perder hasta un minuto de cambios."}, {"tipo": "h", "txt": "4. Guardar los datos fuera del pendrive del sistema"}, {"tipo": "p", "txt": "Los archivos de los PVC, del registry y de las bases viven en una partición aparte del pendrive. Así, reinstalar Fedora o rehacer el cluster no borra los datos: se vuelven a montar y los servicios los encuentran."}, {"tipo": "nota", "tono": "red", "t": "Qué pasa al apagar con /scripts/apagar.sh todos", "txt": "El script detiene los servicios de forma ordenada y **vacía las escrituras pendientes** antes de apagar. Eso es lo que protege los archivos subidos por SFTP, Samba y NFS: si se retira el pendrive sin apagar, la caché sin volcar se pierde o el sistema de archivos queda inconsistente."}], "clave": ["hostNetwork: SIP anuncia IPs, si NAT las cambia se corta el audio", "Swap off: las garantías de memoria se calculan sobre memoria real", "noatime: leer no debe escribir en el flash. Apagar con script: vuelca la caché"], "trampa": "En hostNetwork, olvidar el costo: sin aislamiento y con choque de puertos. Y en swap, decir \"para que ande más rápido\" en lugar de \"para que las garantías de memoria sean confiables\".", "parcial": "Es el bloque de preguntas más rentable del laboratorio: cuatro \"por qué\" que suelen aparecer casi textuales."}, {"id": "l27", "t": "Archivos en red y servicios del laboratorio", "min": 14, "banco": "Laboratorio de Kubernetes", "resumen": "SFTP, Samba y NFS resuelven lo mismo por caminos distintos. Y Gitea, GitLab y Uptime Kuma muestran que el cluster no es solo para web.", "cuerpo": [{"tipo": "tabla", "cab": ["", "SFTP", "Samba 4", "NFSv4"], "filas": [["Sobre qué protocolo", "SSH, en un único canal TCP cifrado", "SMB/CIFS, el protocolo nativo de Windows", "El protocolo NFS, estándar de UNIX"], ["Cómo autentica", "Usuario y contraseña, o clave, igual que SSH", "Usuario y contraseña de dominio, o acceso de invitado", "Controla la máquina y su UID/GID: confía en el cliente"], ["Cómo se usa", "Cliente que sube y baja archivos a pedido", "Se monta como una carpeta compartida", "Se monta con el kernel y se usa como directorio local"], ["Cuándo elegirlo", "Transferencias puntuales por redes no confiables", "Equipos mezclados con Windows", "Directorios compartidos entre servidores Linux"]]}, {"tipo": "nota", "tono": "gold", "t": "La diferencia que se pregunta", "txt": "Montar (NFS, Samba) integra el recurso remoto al árbol local: los programas lo usan como un directorio más, sin saber que está en la red. SFTP **no monta nada**: te conectás y transferís archivos en cada operación."}, {"tipo": "h", "txt": "Los demás servicios del laboratorio"}, {"tipo": "tabla", "cab": ["Servicio", "Qué es y por qué está"], "filas": [["Gitea (30300)", "Servidor Git liviano escrito en Go, ~150 MB de RAM: pensado para quedar encendido todo el tiempo en el pendrive"], ["GitLab CE (30080)", "La suite completa: por omisión pide más de 6 GB, por eso el manifiesto le baja los workers y apaga el monitoreo para correr en ~2.2 GB"], ["Uptime Kuma (30301)", "Panel que monitorea en tiempo real que el registry, SFTP, Samba, NFS, Asterisk y Gitea estén activos"], ["Registry (30500)", "Guarda las imágenes propias para que el cluster las baje sin internet"]]}, {"tipo": "p", "txt": "La lógica del laboratorio es la misma en todos: **elegir la herramienta que entra en el presupuesto de memoria del pendrive**. Gitea y no GitLab por omisión, K3s y no Kubernetes completo, Uptime Kuma para ver el estado sin entrar a kubectl a cada rato."}, {"tipo": "nota", "tono": "teal", "t": "Apagar sin perder nada", "txt": "`./scripts/apagar.sh gitlab` escala el Deployment a 0 réplicas: los Pods se apagan pero los datos siguen en el pendrive, y al volver a encender los archivos están intactos. Al final de la clase, `./scripts/apagar.sh todos --motor` apaga todo, detiene K3s y hace `sync` antes de desconectar el USB."}], "clave": ["SFTP sobre SSH; Samba usa SMB/CIFS; NFS es el estándar UNIX", "Montar integra al árbol local; SFTP transfiere a pedido", "Escalar a 0 apaga los Pods pero conserva los datos en el USB"], "trampa": "Decir que Samba \"es un servidor de archivos de Linux\". Implementa **SMB/CIFS**, el protocolo de Windows: es el puente entre los dos mundos.", "parcial": "En desarrollo aparece la comparación de los tres protocolos con un caso de uso; en MCQ, qué protocolo usa cada uno y qué pasa al escalar un servicio a 0."}], "cubre": "Guía de Kubernetes · partes 1 a 6 (arquitectura, imágenes, archivos en red, VoIP, servicios Git, apagado seguro)"}];
+const PLAN = [{"titulo": "Día 1 · Los archivos y sus reglas", "idea": "El bloque que más preguntas aporta: i-nodos, rutas, enlaces y permisos. Si entendés esto, ya tenés casi la mitad de la Parte I.", "min": 89, "bloques": [{"etiqueta": "I-nodos y metadatos", "min": 25, "lecciones": ["l1", "l2"], "detalle": "Empezá por acá porque todo lo demás cuelga de esto: **nombre en el directorio, metadatos en el i-nodo, contenido en los bloques**. Cuando lo tengas, hacé las MCQ de *Inodos y enlaces*."}, {"etiqueta": "Enlaces", "min": 28, "lecciones": ["l3", "l4"], "detalle": "Duro contra simbólico es la comparación más pedida del parcial. La indirección solo a nivel reconocer: con saber que cada nivel agrega una lectura alcanza."}, {"etiqueta": "Permisos", "min": 36, "lecciones": ["l5", "l6", "l7"], "detalle": "Lo crítico es que los permisos **sobre un directorio significan otra cosa**. Después, setuid/setgid/sticky con un caso de uso cada uno."}, {"etiqueta": "Cierre del día: escribir", "min": 28, "lecciones": ["l3", "l5"], "detalle": "Elegí dos preguntas de desarrollo de i-nodos o de permisos en el banco y escribilas sin mirar."}], "cierre": "Antes de dormir, mirá el **Repaso exprés** solo de los temas 1 y 2. Son 10 minutos y fija lo que ya leíste.", "practica": 0}, {"titulo": "Día 2 · Montaje, almacenamiento y shell", "idea": "Los temas de peso medio y el shell, que es mucho MCQ y poco esfuerzo. Si el día 1 se atrasó, este es el día donde podés recortar LVM y punteros sin consecuencias.", "min": 118, "bloques": [{"etiqueta": "Montaje y sistemas de archivos", "min": 40, "lecciones": ["l8", "l9", "l10"], "detalle": "Montaje (lo que había en el punto de montaje **se oculta**) y las tres ideas modernas: journaling, extensiones, copia al escribir. LVM: alcanza con las tres capas."}, {"etiqueta": "Bloques, archivos y objetos", "min": 24, "lecciones": ["l11", "l12"], "detalle": "Tabla de los tres modelos y a otra cosa. Las preguntas son de elegir el modelo correcto para un caso."}, {"etiqueta": "Shell y comandos", "min": 54, "lecciones": ["l13", "l14", "l15", "l26"], "detalle": "Redirección, tuberías y comillas. Ojo con 0/1/2 y con la diferencia entre comillas simples y dobles: es lo que más se falla. La tabla de comandos se lee **tapando la respuesta**, no dos veces seguidas."}], "cierre": "Hacé un simulacro corto con tiempo libre en el banco y mirá **qué temas te marcó para reforzar**. Eso decide qué releer mañana.", "practica": 0}, {"titulo": "Día 3 · Criptografía, Kubernetes e integración", "idea": "Los dos temas que en desarrollo valen más: criptografía y Kubernetes. Y el cierre obligatorio con simulacros completos de 15 + 5.", "min": 156, "bloques": [{"etiqueta": "Criptografía, SSH y certificados", "min": 52, "lecciones": ["l18", "l19", "l20", "l21"], "detalle": "Esquema híbrido, hash y las cuatro etapas de SSH. Son ideas cortas que se repiten: si las sabés explicar, sumás fácil en la Parte II."}, {"etiqueta": "API y llamadas al sistema", "min": 30, "lecciones": ["l16", "l17"], "detalle": "Llamada al sistema contra función de biblioteca, y fork + exec contra la llamada única de Windows. No más que eso."}, {"etiqueta": "Laboratorio de Kubernetes", "min": 74, "lecciones": ["l22", "l23", "l24", "l25", "l27"], "detalle": "Los objetos y los cuatro **por qué** del laboratorio: hostNetwork, swap, noatime y los dos archivos de registry. Esos cuatro suelen venir casi textuales."}, {"etiqueta": "Integración: simulacro completo", "min": 45, "lecciones": [], "detalle": "Sin leer nada nuevo: dos simulacros completos con tiempo. Después releé solo lo que fallaste, en el **Repaso exprés**.", "practica": true}], "cierre": "La última hora es de escritura, no de lectura: elegí tres desarrollos de cripto o de Kubernetes y redactalos completos contra la rúbrica.", "practica": 45}];
+const MAPA = [{"unidad": "Unidad 4 · Archivos y sistema de archivos", "filas": [["A · El archivo", "l1"], ["B · Directorios y rutas", "l2"], ["C · El i-nodo", "l1, l4"], ["D · Enlaces duros y simbólicos", "l3"], ["E · Montaje de particiones", "l8"], ["F · Todo es un archivo (/dev, /proc, /sys)", "l2, l16"], ["G · Redireccionamiento", "l14"], ["H · Cómo se guarda un archivo en el disco", "l9"], ["I y J · FAT16 y sistemas modernos", "l9"], ["K · LVM", "l10"], ["L · Almacenamiento de objetos", "l11, l12"], ["M · Seguridad de archivos", "l5, l6, l7"]]}, {"unidad": "Unidad 5 · Shell, API y scripting", "filas": [["A y B · Qué es un shell y sus familias", "l13"], ["C · Cómo funciona el intérprete", "l14"], ["D · Resumen de comandos", "l26"], ["E · La interfaz gráfica", "l17"], ["F · Llamadas al sistema y API", "l16"], ["G · UNIX contra Windows", "l17"], ["H · SSH, cifrado y certificados", "l18, l19, l20, l21"], ["I · Shellscripting", "l15"]]}, {"unidad": "Laboratorio de Kubernetes", "filas": [["Parte 1 · Fedora, K3s y el entorno", "l22"], ["Parte 2 · Build, tag, push, deploy y Traefik", "l23, l24"], ["Parte 3 · SFTP, Samba y NFS", "l27"], ["Parte 4 · Asterisk y VoIP", "l25"], ["Parte 5 · Gitea, GitLab CE y Uptime Kuma", "l27"], ["Parte 6 · Energía, apagado seguro y persistencia", "l25"]]}];
+
+/* ---------- estado ---------- */
+const KEY = 'prep-so-lecciones-v1';
+let S = { leido:{}, bloques:{}, ultima:null, vista:'inicio' };
+try { const raw = localStorage.getItem(KEY); if(raw) S = Object.assign(S, JSON.parse(raw)); } catch(e){}
+function guardar(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function toast(txt){
+  const t = document.getElementById('toast');
+  t.textContent = txt; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+const esc = s => String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* markdown mínimo: **negrita** y `código` */
+function md(s){
+  return esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
+}
+
+/* ---------- datos derivados ---------- */
+const MODS = LECCIONES;
+const TODAS = MODS.flatMap(m=>m.lecciones.map(l=>({...l, mod:m})));
+const N = TODAS.length;
+const MIN = TODAS.reduce((a,l)=>a+l.min,0);
+const HORAS = (MIN/60).toFixed(1).replace('.',',');
+const porId = Object.fromEntries(TODAS.map(l=>[l.id,l]));
+const totales = ()=>({ ok: TODAS.filter(l=>S.leido[l.id]).length, tot: TODAS.length });
+
+/* ---------- router ---------- */
+let vista = S.vista || 'inicio';
+let params = {};
+function ir(v, p){
+  vista = v; params = p||{};
+  if(['inicio','plan','temas','cobertura','previa','progreso'].includes(v)){ S.vista = v; guardar(); }
+  render();
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('on', b.dataset.view===v || (v==='leccion' && b.dataset.view==='temas')));
+  window.scrollTo({top:0, behavior:'instant'});
+}
+document.getElementById('nav').addEventListener('click', e=>{
+  const b = e.target.closest('.navbtn'); if(!b) return;
+  ir(b.dataset.view);
+});
+function render(){
+  const el = document.getElementById('app');
+  el.innerHTML = '';
+  ({inicio, plan, temas, cobertura, leccion, previa, progreso}[vista] || inicio)(el);
+  document.getElementById('footDetalle').textContent = `${totales().ok} de ${TODAS.length} lecciones`;
+}
+
+/* ---------- piezas ---------- */
+const IC = {
+  play:'<svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8V4Z"/></svg>',
+  next:'<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  prev:'<svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>',
+  check:'<svg viewBox="0 0 24 24"><path d="m20 6-11 11-5-5"/></svg>',
+  book:'<svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5Z"/><path d="M4 5.5v15"/></svg>',
+  bolt:'<svg viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg>',
+  list:'<svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'
+};
+function barra(pct, clase){
+  return `<div class="bar ${clase||''}"><i style="width:${Math.max(0,Math.min(100,pct))}%"></i></div>`;
+}
+function pct(a,b){ return b? Math.round(a*100/b) : 0; }
+
+/* ============ INICIO ============ */
+function inicio(el){
+  const t = totales();
+  const hecho = MODS.filter(m=>m.lecciones.every(l=>S.leido[l.id])).length;
+  const sig = TODAS.find(l=>!S.leido[l.id]);
+  el.innerHTML = `
+  <div class="hero">
+    <div class="eyebrow">Temas 4 y 5 · Laboratorio de Kubernetes</div>
+    <h1>Entender primero, memorizar después</h1>
+    <p>Las ${N} lecciones del material del profesor —Unidad 4, Unidad 5 y el laboratorio de Kubernetes— ordenadas por lo que más pesa en el parcial. Leés una idea, la ves en una tabla y la bajás a tierra con la trampa de examen. En tres días entrás.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px">
+      <span class="pill" style="background:rgba(255,255,255,.14);color:#fff">Unidad 4</span>
+      <span class="pill" style="background:rgba(255,255,255,.14);color:#fff">Unidad 5</span>
+      <span class="pill" style="background:rgba(255,255,255,.14);color:#fff">Laboratorio de Kubernetes</span>
+    </div>
+    <div class="cta">
+      <button class="btn primary" id="bSeguir">${sig?IC.play+' '+(t.ok? 'Seguir estudiando' : 'Empezar ahora') : IC.check+' Repasar'}</button>
+      <button class="btn ghost" id="bPlan">${IC.list} Ver el plan de 3 días</button>
+      <button class="btn ghost" id="bCob">Qué cubre</button>
+    </div>
+    <svg class="art" width="230" height="230" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width=".7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5Z"/><path d="M4 5.5v15"/><path d="M8 7.5h8M8 11h5"/>
+    </svg>
+  </div>
+
+  <div class="grid g3" style="margin-top:16px">
+    <div class="stat"><div class="n">${t.ok}<small>/${t.tot}</small></div><div class="l">lecciones leídas</div></div>
+    <div class="stat"><div class="n">${hecho}<small>/${MODS.length}</small></div><div class="l">temas completos</div></div>
+    <div class="stat"><div class="n">3<small> días</small></div><div class="l">plan de estudio armado</div></div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="eyebrow">Cómo está armado el parcial</div>
+    <h3 class="h2">Parte I: 15 opción múltiple · Parte II: 5 desarrollo · 100 puntos</h3>
+    <p class="small muted" style="margin-top:8px">Los 15 MCQ valen 4 cada uno y descuentan 1 por error (máximo 60). Los 5 de desarrollo valen 8 cada uno (40). Se aprueba con 60, y el desarrollo es donde se gana o se pierde: por eso cada lección termina con lo que hay que poder escribir.</p>
+    <div class="grid g3" style="margin-top:14px">
+      <div class="nota red" style="margin:0"><div class="t">Peso alto · 3 temas</div>I-nodos y enlaces, permisos, criptografía y Kubernetes: entre ellos hay ${'~70'}% del banco de preguntas.</div>
+      <div class="nota gold" style="margin:0"><div class="t">Peso medio · 3 temas</div>Montaje y sistemas de archivos, almacenamiento (bloques, archivos y objetos), API y llamadas al sistema.</div>
+      <div class="nota blue" style="margin:0"><div class="t">Repaso · 2 temas</div>Shell y comandos es mucho MCQ pero fácil; el detalle fino de LVM y punteros alcanza con reconocerlo.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div><div class="eyebrow" style="margin-bottom:4px">Mapa</div><h3 class="h2">Tus temas, por peso</h3></div>
+      <button class="btn sm" id="bTemas">Ver todos ${IC.next}</button>
+    </div>
+    ${MODS.map(m=>{
+      const r = m.lecciones.filter(l=>S.leido[l.id]).length;
+      return `<div class="tema p${m.peso}" style="margin-bottom:10px; cursor:pointer" data-mod="${m.id}">
+        <span class="peso"></span>
+        <span style="flex:1;min-width:0">
+          <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <b style="font-size:15.6px">${esc(m.titulo)}</b>
+            <span class="pill ${m.peso===1?'red':m.peso===2?'gold':'teal'}">${m.peso===1?'peso alto':m.peso===2?'peso medio':'repaso'}</span>
+          </span>
+          <span class="barwrap" style="margin-top:9px">${barra(pct(r,m.lecciones.length), r===m.lecciones.length?'teal':'')}
+            <span class="tiny muted" style="min-width:52px;text-align:right">${r}/${m.lecciones.length}</span></span>
+        </span>
+      </div>`;
+    }).join('')}
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Práctica</div>
+    <h3 class="h2">Las lecciones no alcanzan</h3>
+    <p class="small muted" style="margin-top:8px">Este material es para entender. La app de preguntas es para probar: 200 de opción múltiple y 100 de desarrollo con pistas y rúbrica. La secuencia que funciona es leer un tema acá y hacer las preguntas de ese tema allá, el mismo día.</p>
+    <div class="btnrow" style="margin-top:12px">
+      <a class="btn primary" href="./index.html">${IC.bolt} Abrir la app de preguntas</a>
+      <button class="btn" id="bPrevia">${IC.list} Repaso exprés (20 min)</button>
+    </div>
+  </div>`;
+
+  el.querySelector('#bSeguir').onclick = ()=> ir('leccion', {id: sig ? sig.id : TODAS[0].id});
+  el.querySelector('#bPlan').onclick = ()=> ir('plan');
+  el.querySelector('#bCob').onclick = ()=> ir('cobertura');
+  el.querySelector('#bTemas').onclick = ()=> ir('temas');
+  el.querySelector('#bPrevia').onclick = ()=> ir('previa');
+  el.querySelectorAll('[data-mod]').forEach(d=>d.onclick=()=> ir('temas', {mod: d.dataset.mod}));
+}
+
+/* ============ PLAN ============ */
+function plan(el){
+  el.innerHTML = `
+  <div class="eyebrow">Tres días</div>
+  <h1 class="h1">El plan</h1>
+  <p class="lead" style="margin-top:8px">${HORAS} horas de lectura en total, más las horas de práctica en el banco, repartidas para que los temas con más peso caigan primero y el último día quede para integrar y practicar. Los tiempos son estimados de lectura atenta, no de pasar los ojos.</p>
+  <div style="margin-top:18px">
+    ${PLAN.map((d,i)=>`
+      <div class="card" style="margin-top:${i?'16px':'0'}">
+        <div class="dia d${i+1}" style="border:0;box-shadow:none;padding:0">
+          <div class="num">${i+1}</div>
+          <div style="flex:1;min-width:0">
+            <h3>${esc(d.titulo)}</h3>
+            <p class="small muted" style="margin:5px 0 0">${esc(d.idea)}</p>
+            <div class="meta">
+              <span class="pill blue">${d.min} min de lectura</span>
+              ${d.practica?`<span class="pill gold">+ ${d.practica} min de práctica</span>`:''}
+              ${d.bloques.map(b=>`<span class="pill gray">${esc(b.etiqueta)}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:14px">
+          ${d.bloques.map((b,bi)=>{
+            const key = `d${i+1}b${bi+1}`;
+            const on = !!S.bloques[key];
+            return `<div class="bloque">
+              <button class="check ${on?'on':''}" data-b="${key}" aria-label="Marcar bloque">${IC.check}</button>
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap">
+                  <b style="font-size:14.8px">${esc(b.etiqueta)}</b>
+                  <span class="tiny muted">${b.min} min</span>
+                </div>
+                <p class="small muted" style="margin:3px 0 7px">${md(b.detalle)}</p>
+                <div class="btnrow">
+                  ${b.lecciones.map(id=>{
+                    const l = porId[id];
+                    const r = S.leido[id];
+                    return `<button class="btn sm ghost" data-lec="${id}">${r?'✓ ':''}${esc(l.t.split(':')[0])}</button>`;
+                  }).join('')}
+                </div>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div class="nota teal" style="margin-top:14px;margin-bottom:0"><div class="t">Cierre del día</div>${md(d.cierre)}</div>
+      </div>`).join('')}
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Reglas del juego</div>
+    <h3 class="h2">Cómo aprovechar los tres días</h3>
+    <ul style="margin-top:10px">
+      <li><b>Nunca leas sin practicar.</b> Después de cada tema, andá al banco y hacé las MCQ de ese tema. Lo que fallaste es lo que hay que releer, no todo el tema.</li>
+      <li><b>El desarrollo se escribe.</b> Una lección leída no es una respuesta que sabés redactar: elegí dos preguntas de desarrollo del tema y escribilas sin mirar.</li>
+      <li><b>La última media hora del día es repaso exprés.</b> Solo trampas y claves, sin leer tablas completas.</li>
+      <li><b>Si te atrasás, recortá por peso.</b> Nunca sacrifiques i-nodos, permisos, cripto ni Kubernetes para terminar LVM o punteros.</li>
+    </ul>
+  </div>`;
+
+  el.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>{
+    const k = b.dataset.b;
+    S.bloques[k] = !S.bloques[k]; guardar();
+    b.classList.toggle('on', S.bloques[k]);
+  });
+  el.querySelectorAll('[data-lec]').forEach(b=>b.onclick=()=> ir('leccion',{id:b.dataset.lec}));
+}
+
+/* ============ TEMAS ============ */
+function temas(el){
+  el.innerHTML = `
+  <div class="eyebrow">Ocho temas · ${N} lecciones · ${HORAS} h de lectura</div>
+  <h1 class="h1">Temas</h1>
+  <p class="lead" style="margin-top:8px">Cubre las <b>tres partes del material</b>: Unidad 4 (archivos y sistema de archivos), Unidad 5 (shell, API y scripting) y la guía de Kubernetes. Ordenados por peso en el parcial. Peso alto: aparece en casi todas las preguntas. Peso medio: dos o tres preguntas por parcial. Repaso: con saber reconocerlo alcanza.</p>
+  <div style="margin-top:18px; display:flex; flex-direction:column; gap:12px">
+    ${MODS.map(m=>{
+      const r = m.lecciones.filter(l=>S.leido[l.id]).length;
+      const abierto = params.mod === m.id;
+      return `<div class="card" style="padding:0; overflow:hidden">
+        <button class="tema p${m.peso}" data-toggle="${m.id}" style="border:0; border-radius:0; box-shadow:none; width:100%">
+          <span class="peso"></span>
+          <span style="flex:1;min-width:0">
+            <span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <b style="font-size:16px">${esc(m.titulo)}</b>
+              <span class="pill ${m.peso===1?'red':m.peso===2?'gold':'teal'}">${m.peso===1?'peso alto':m.peso===2?'peso medio':'repaso'}</span>
+              <span class="pill gray">${m.lecciones.length} lecciones</span>
+            </span>
+            <span class="tiny muted" style="display:block;margin-top:5px">${esc(m.eje)} · ${m.min} min de lectura</span>
+            <span class="barwrap" style="margin-top:9px">${barra(pct(r,m.lecciones.length), r===m.lecciones.length?'teal':'')}
+              <span class="tiny muted" style="min-width:52px;text-align:right">${r}/${m.lecciones.length}</span></span>
+          </span>
+          <span class="chev">${abierto?'▲':'▼'}</span>
+        </button>
+        ${abierto? `<div style="padding:0 18px 16px">
+          <p class="small" style="margin:4px 0 10px; color:#41536A">${esc(m.porQue)}</p>
+          ${m.cubre?`<p class="tiny" style="margin:0 0 12px;color:var(--muted)"><b>Cubre:</b> ${esc(m.cubre)}</p>`:''}
+          ${m.lecciones.map((l,i)=>`
+            <button class="tocitem ${S.leido[l.id]?'read':''}" data-lec="${l.id}" style="padding:10px 9px">
+              <span class="st"></span>
+              <span style="flex:1"><b style="font-weight:${S.leido[l.id]?'600':'650'}">${i+1}. ${esc(l.t)}</b>
+                <span class="tiny muted" style="display:block">${l.min} min</span></span>
+            </button>`).join('')}
+        </div>`:''}
+      </div>`;
+    }).join('')}
+  </div>`;
+  el.querySelectorAll('[data-toggle]').forEach(b=>b.onclick=()=>{
+    params.mod = params.mod===b.dataset.toggle ? null : b.dataset.toggle; render();
+    if(params.mod){
+      const c = document.querySelector(`[data-toggle="${params.mod}"]`);
+      if(c) c.scrollIntoView({block:'start', behavior:'instant'});
+    }
+  });
+  el.querySelectorAll('[data-lec]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); ir('leccion',{id:b.dataset.lec}); });
+}
+
+/* ============ LECCIÓN ============ */
+function leccion(el){
+  const l = porId[params.id] || TODAS[0];
+  const mod = l.mod;
+  const idx = mod.lecciones.findIndex(x=>x.id===l.id);
+  const ant = idx>0 ? mod.lecciones[idx-1] : null;
+  const sig = idx<mod.lecciones.length-1 ? mod.lecciones[idx+1] : null;
+  const leido = !!S.leido[l.id];
+
+  el.innerHTML = `
+  <div class="lecg">
+    <div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+        <span class="pill ${mod.peso===1?'red':mod.peso===2?'gold':'teal'}">${mesc(mod.titulo)}</span>
+        <span class="pill gray">Lección ${idx+1} de ${mod.lecciones.length}</span>
+        <span class="pill blue">${l.min} min</span>
+        ${leido? '<span class="pill teal">✓ leída</span>':''}
+      </div>
+      <article class="leccion" id="lecbox">
+        <h2>${md(l.t)}</h2>
+        <div class="resumen">${md(l.resumen)}</div>
+        ${l.cuerpo.map(pieza).join('')}
+        <div class="clavebox">
+          <div class="eyebrow" style="margin-bottom:8px">Para poder decirlo de memoria</div>
+          <ul style="margin:0;padding-left:20px">${l.clave.map(c=>`<li>${md(c)}</li>`).join('')}</ul>
+        </div>
+        <div class="nota red"><div class="t">La trampa de examen</div>${md(l.trampa)}</div>
+        <div class="nota blue" style="margin-bottom:0"><div class="t">Cómo aparece en el parcial</div>${md(l.parcial)}</div>
+      </article>
+
+      <div class="btnrow" style="margin-top:14px">
+        <button class="btn ${leido?'':'primary'}" id="bLeido">${leido? '✓ Leída · desmarcar' : 'Marcar como leída'}</button>
+        <a class="btn ghost" href="./index.html">Abrir la app de preguntas</a>
+      </div>
+      <div class="lecnav">
+        ${ant? `<button class="btn" data-go="${ant.id}">${IC.prev} ${md(ant.t.split(':')[0])}</button>`:'<span></span>'}
+        ${sig? `<button class="btn primary" data-go="${sig.id}">${md(sig.t.split(':')[0])} ${IC.next}</button>`:''}
+      </div>
+    </div>
+
+    <div class="toc">
+      <div class="eyebrow" style="margin-bottom:8px">${mesc(mod.titulo)}</div>
+      ${mod.lecciones.map((x,i)=>`
+        <button class="tocitem ${x.id===l.id?'on':''} ${S.leido[x.id]?'read':''}" data-toc="${x.id}">
+          <span class="st"></span>
+          <span style="flex:1">${i+1}. ${md(x.t.split(':')[0])}</span>
+        </button>`).join('')}
+      <hr class="sep" style="margin:12px 0">
+      <div class="tiny muted" style="padding:0 9px; line-height:1.5">${mesc(mod.porQue)}</div>
+    </div>
+  </div>`;
+
+  el.querySelector('#bLeido').onclick = ()=>{
+    S.leido[l.id] = !S.leido[l.id]; guardar();
+    if(S.leido[l.id]) toast('Lección marcada. La próxima es la de abajo.');
+    render();
+  };
+  el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=> ir('leccion',{id:b.dataset.go}));
+  el.querySelectorAll('[data-toc]').forEach(b=>b.onclick=()=> ir('leccion',{id:b.dataset.toc}));
+}
+function mesc(s){ return esc(s); }
+function pieza(p){
+  if(p.tipo==='p') return `<p>${md(p.txt)}</p>`;
+  if(p.tipo==='h') return `<h4>${md(p.txt)}</h4>`;
+  if(p.tipo==='lista') return `<ul>${p.items.map(i=>`<li>${md(i)}</li>`).join('')}</ul>`;
+  if(p.tipo==='tabla') return `<div style="overflow-x:auto"><table><thead><tr>${p.cab.map(c=>`<th>${md(c)}</th>`).join('')}</tr></thead>
+    <tbody>${p.filas.map(f=>`<tr>${f.map(c=>`<td>${md(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  if(p.tipo==='codigo') return `<pre>${esc(p.txt)}</pre>`;
+  if(p.tipo==='nota') return `<div class="nota ${p.tono||'blue'}"><div class="t">${md(p.t)}</div>${md(p.txt)}</div>`;
+  return '';
+}
+
+/* ============ COBERTURA ============ */
+function cobertura(el){
+  el.innerHTML = `
+  <div class="eyebrow">Del material a las lecciones</div>
+  <h1 class="h1">Qué cubre esta página</h1>
+  <p class="lead" style="margin-top:8px">Cada sección del material del profesor tiene su lección. Si un tema no aparece acá, no está en la página: no hay huecos silenciosos.</p>
+
+  <div class="grid g3" style="margin-top:16px">
+    <div class="stat"><div class="n" style="font-size:19px">Unidad 4</div><div class="l">Archivos y sistema de archivos · secciones A a M</div></div>
+    <div class="stat"><div class="n" style="font-size:19px">Unidad 5</div><div class="l">Shell, API y scripting · secciones A a I</div></div>
+    <div class="stat"><div class="n" style="font-size:19px">Kubernetes</div><div class="l">Guía del laboratorio · partes 1 a 6</div></div>
+  </div>
+
+  ${MAPA.map(u=>`
+    <div class="card" style="margin-top:16px">
+      <div class="eyebrow">${esc(u.unidad)}</div>
+      <div style="overflow-x:auto;margin-top:6px">
+        <table style="margin:0">
+          <thead><tr><th style="width:55%">Sección del material</th><th>Lección que la cubre</th></tr></thead>
+          <tbody>${u.filas.map(f=>{
+            const ids = f[1].split(',').map(x=>x.trim());
+            const lec = ids.map(id=>porId[id]).filter(Boolean);
+            const todos = lec.every(l=>S.leido[l.id]);
+            return `<tr>
+              <td style="font-weight:600">${esc(f[0])}</td>
+              <td>${lec.map(l=>`<button class="btn sm ghost" data-lec="${l.id}" style="padding:3px 9px;font-size:12.6px;margin:2px 4px 2px 0;${S.leido[l.id]?'border-color:#BFE3DB;background:var(--teal-soft);color:#1C6C62':''}">${S.leido[l.id]?'✓ ':''}${esc(l.t.split(':')[0])}</button>`).join('')}
+              ${todos?'<span class="tiny" style="color:var(--teal);font-weight:700">leída</span>':''}</td>
+            </tr>`;
+          }).join('')}</tbody>
+        </table>
+      </div>
+    </div>`).join('')}
+
+  <div class="card" style="margin-top:16px">
+    <div class="eyebrow">Dos aclaraciones honestas</div>
+    <h3 class="h2">Qué quedó afuera y por qué</h3>
+    <ul style="margin-top:10px">
+      <li><b>Unidad 4 · N y Unidad 5 · final:</b> son las preguntas de repaso del propio material. No se resumen acá porque ya están transformadas en el banco de 200 + 100 preguntas.</li>
+      <li><b>El catálogo completo de comandos de la Unidad 5 · D</b> está resumido en una sola lección (<i>Los comandos que hay que reconocer</i>): el parcial pide reconocer, no escribir de memoria.</li>
+      <li><b>Comparaciones largas de sistemas de archivos</b> (btrfs, XFS, ZFS, ReiserFS) están reducidas a lo que se pregunta: dónde brilla cada uno y su limitación.</li>
+      <li><b>Detalle fino de punteros e indirección</b>: solo se pide contar lecturas, no memorizar capacidades exactas.</li>
+    </ul>
+    <div class="nota teal" style="margin-bottom:0"><div class="t">La regla que usé</div>Todo lo que pesa alto en el parcial está explicado de punta a punta; lo que casi no se pregunta quedó a nivel reconocer, para que entren las ${HORAS} horas en tres días.</div>
+  </div>`;
+
+  el.querySelectorAll('[data-lec]').forEach(b=>b.onclick=()=> ir('leccion',{id:b.dataset.lec}));
+}
+
+/* ============ REPASO EXPRÉS ============ */
+function previa(el){
+  el.innerHTML = `
+  <div class="eyebrow">Última pasada</div>
+  <h1 class="h1">Repaso exprés</h1>
+  <p class="lead" style="margin-top:8px">Solo las ideas que hay que tener afiladas: una frase por concepto y la trampa que más se falla. Esto es lo que conviene leer la última media hora antes del parcial, o en la cola para entrar.</p>
+  <div class="btnrow" style="margin-top:14px">
+    <button class="btn sm" id="fTodas">Todo</button>
+    ${MODS.map(m=>`<button class="btn sm ghost" data-fil="${m.id}">${esc(m.titulo.split(',')[0].split(' y ')[0])}</button>`).join('')}
+  </div>
+  <div id="previaBody" style="margin-top:18px"></div>`;
+
+  const pintar = (filtro)=>{
+    const mods = filtro ? MODS.filter(m=>m.id===filtro) : MODS;
+    el.querySelector('#previaBody').innerHTML = mods.map(m=>`
+      <div class="card" style="margin-bottom:14px">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+          <h3 class="h2" style="font-size:18px">${esc(m.titulo)}</h3>
+          <span class="pill ${m.peso===1?'red':m.peso===2?'gold':'teal'}">${m.peso===1?'peso alto':m.peso===2?'peso medio':'repaso'}</span>
+        </div>
+        ${m.lecciones.map(l=>`
+          <div style="padding:12px 0; border-top:1px solid var(--line)">
+            <div style="display:flex; gap:8px; align-items:baseline; flex-wrap:wrap">
+              <b style="font-size:14.6px">${esc(l.t.split(':')[0])}</b>
+            </div>
+            <ul style="margin:6px 0 8px; padding-left:20px">${l.clave.map(c=>`<li style="font-size:13.9px; line-height:1.55">${md(c)}</li>`).join('')}</ul>
+            <div class="tiny" style="color:#A24B44; line-height:1.5"><b>Ojo:</b> ${md(l.trampa)}</div>
+          </div>`).join('')}
+      </div>`).join('');
+  };
+  pintar(null);
+  el.querySelector('#fTodas').onclick = ()=>{ pintar(null);
+    el.querySelectorAll('[data-fil]').forEach(b=>b.classList.add('ghost')); };
+  el.querySelectorAll('[data-fil]').forEach(b=>b.onclick=()=>pintar(b.dataset.fil));
+}
+
+/* ============ PROGRESO ============ */
+function progreso(el){
+  const t = totales();
+  const bloques = Object.values(S.bloques).filter(Boolean).length;
+  const totalBloques = PLAN.flatMap(d=>d.bloques).length;
+  const checklist = [
+    {ok: t.ok>=Math.ceil(t.tot*0.5), txt:'Leíste al menos la mitad de las lecciones'},
+    {ok: MODS.filter(m=>m.peso===1).every(m=>m.lecciones.every(l=>S.leido[l.id])), txt:'Completaste los cuatro temas de peso alto'},
+    {ok: bloques>=totalBloques-2, txt:'Cumpliste casi todos los bloques del plan'},
+    {ok: t.ok===t.tot, txt:`Leíste las ${N} lecciones`}
+  ];
+  el.innerHTML = `
+  <div class="eyebrow">Panel</div>
+  <h1 class="h1">Progreso</h1>
+  <p class="lead" style="margin-top:8px">Todo se guarda en este navegador. Si cambiás de equipo, el progreso no viaja: es solo de acá.</p>
+
+  <div class="grid g3" style="margin-top:16px">
+    <div class="stat"><div class="n">${t.ok}<small>/${t.tot}</small></div><div class="l">lecciones leídas</div></div>
+    <div class="stat"><div class="n">${bloques}<small>/${totalBloques}</small></div><div class="l">bloques del plan</div></div>
+    <div class="stat"><div class="n">${pct(t.ok,t.tot)}%</div><div class="l">del material</div></div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="eyebrow">Por tema</div>
+    ${MODS.map(m=>{
+      const r = m.lecciones.filter(l=>S.leido[l.id]).length;
+      return `<div style="padding:10px 0;border-bottom:1px solid var(--line)">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline">
+          <b style="font-size:14.4px">${esc(m.titulo)}</b>
+          <span class="tiny muted">${r}/${m.lecciones.length}</span>
+        </div>
+        <div style="margin-top:6px">${barra(pct(r,m.lecciones.length), r===m.lecciones.length?'teal':'')}</div>
+      </div>`;
+    }).join('')}
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">¿Estás listo?</div>
+    <div style="margin-top:8px">
+      ${checklist.map(c=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:7px 0">
+        <span class="check ${c.ok?'on':''}" style="pointer-events:none">${IC.check}</span>
+        <span class="small" style="${c.ok?'':'color:#5A6B7E'}">${c.txt}</span></div>`).join('')}
+    </div>
+    <div class="nota ${checklist.every(c=>c.ok)?'teal':'gold'}" style="margin-bottom:0">
+      <div class="t">${checklist.every(c=>c.ok)?'Listo':'Todavía no'}</div>
+      ${checklist.every(c=>c.ok)
+        ? 'Terminaste el material. Ahora lo único que rinde es hacer simulacros completos con tiempo en el banco de preguntas.'
+        : 'Lo que falta es lectura, no fuerza de voluntad: seguí por donde quedaste y no saltees los temas de peso alto.'}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Siguiente paso</div>
+    <div class="btnrow">
+      <button class="btn primary" id="bSeg">Seguir con la próxima lección</button>
+      <a class="btn" href="./index.html">Abrir la app de preguntas</a>
+      <button class="btn ghost" id="bReset">Reiniciar progreso</button>
+    </div>
+  </div>`;
+  el.querySelector('#bSeg').onclick = ()=>{ const n = TODAS.find(l=>!S.leido[l.id]); ir('leccion',{id:(n||TODAS[0]).id}); };
+  el.querySelector('#bReset').onclick = ()=>{
+    if(!confirm('¿Borrar el progreso de lecciones y del plan?')) return;
+    S = {leido:{}, bloques:{}, ultima:null, vista:'inicio'}; guardar(); ir('inicio'); toast('Progreso borrado');
+  };
+}
+
+ir(vista);
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a5f9f4563be5f1ca',t:'MTc5NTUzOTQ2NA=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a5f9f4563be5f1ca',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

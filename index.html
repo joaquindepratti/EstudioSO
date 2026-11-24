@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preparador de parcial · Sistemas Operativos</title>
+<style>
+:root{
+  --navy:#172C48; --navy-2:#213A5B; --bg:#F4F6F9; --panel:#FFFFFF; --ink:#1E2C3F;
+  --blue:#3673B9; --blue-soft:#EAF2FB; --teal:#268579; --teal-soft:#E9F5F2;
+  --gold:#C18A36; --gold-soft:#FBF4E8; --red:#C6645C; --red-soft:#FBEFEE;
+  --line:#E2E8EF; --muted:#6D7B8C;
+  --r:16px; --r-sm:10px; --shadow:0 2px 4px rgba(23,44,72,.04), 0 10px 28px rgba(23,44,72,.07);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{margin:0; line-height:1.25; letter-spacing:-.01em}
+p{margin:0 0 .8em}
+button{font:inherit; cursor:pointer}
+svg{flex:none}
+.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.feedback .ttl svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.pill svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+code{font-family:var(--mono); font-size:.92em; background:#EDF2F8; padding:.08em .38em; border-radius:6px; border:1px solid var(--line)}
+
+/* ---------- layout ---------- */
+.app{display:flex; min-height:100vh}
+.side{
+  width:262px; flex:0 0 262px; background:var(--navy); color:#DCE5F0; padding:22px 16px;
+  display:flex; flex-direction:column; gap:22px; position:sticky; top:0; height:100vh;
+}
+.brand{display:flex; gap:11px; align-items:center; padding:0 6px}
+.brand .mark{
+  width:38px; height:38px; flex:0 0 38px; border-radius:11px; background:linear-gradient(150deg,#2E6AA8,#1D8C7E);
+  display:grid; place-items:center; color:#fff; font-weight:700; font-size:15px; letter-spacing:-.03em;
+}
+.brand b{display:block; color:#fff; font-size:14px; line-height:1.25}
+.brand span{font-size:11.5px; color:#93A6BE; letter-spacing:.04em; text-transform:uppercase}
+nav{display:flex; flex-direction:column; gap:4px}
+nav .sec{font-size:10.5px; text-transform:uppercase; letter-spacing:.11em; color:#7E93AE; padding:0 10px; margin-bottom:6px}
+.navbtn{
+  display:flex; align-items:center; gap:11px; width:100%; text-align:left; border:0; background:transparent;
+  color:#C4D2E3; padding:10px 11px; border-radius:10px; font-size:14.2px; transition:background .15s, color .15s;
+}
+.navbtn:hover{background:var(--navy-2); color:#fff}
+.navbtn.on{background:#2B4C74; color:#fff; box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.navbtn.on .ico{background:rgba(255,255,255,.16)}
+.ico{width:26px; height:26px; flex:0 0 26px; border-radius:8px; background:rgba(255,255,255,.08); display:grid; place-items:center}
+.ico svg{width:15px; height:15px; stroke:#DCE5F0; fill:none; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round}
+.navbtn.on .ico svg{stroke:#fff}
+.ns{display:none}
+.side .foot{margin-top:auto; font-size:11.5px; color:#7E93AE; padding:0 8px; line-height:1.5}
+.side .foot b{color:#A9BCD4; font-weight:600}
+.dot-live{display:inline-block; width:7px;height:7px;border-radius:50%;background:var(--teal); margin-right:6px}
+
+main{flex:1; min-width:0; padding:28px 34px 70px}
+.wrap{max-width:1080px; margin:0 auto}
+.mobibar{display:none}
+
+/* ---------- tipografía / utilidades ---------- */
+.eyebrow{font-size:11.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); font-weight:600; margin-bottom:8px}
+.h1{font-size:clamp(25px,3.4vw,34px); font-weight:700}
+.lead{color:var(--muted); font-size:15.5px; max-width:66ch}
+.card{background:var(--panel); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:22px}
+.card + .card{margin-top:16px}
+.row{display:flex; gap:14px; flex-wrap:wrap}
+.grid{display:grid; gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.tiny{font-size:12px}
+.center{text-align:center}
+hr.sep{border:0; border-top:1px solid var(--line); margin:18px 0}
+.pill{display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:3px 10px; font-size:11.8px; font-weight:600; letter-spacing:.01em}
+.pill.blue{background:var(--blue-soft); color:#2A5C93}
+.pill.teal{background:var(--teal-soft); color:#1C6C62}
+.pill.gold{background:var(--gold-soft); color:#8F6522}
+.pill.red{background:var(--red-soft); color:#A44A43}
+.pill.gray{background:#EEF2F6; color:#5A6B7E}
+
+.btn{
+  border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:11px; padding:10px 16px;
+  font-size:14.5px; font-weight:600; display:inline-flex; align-items:center; gap:8px; transition:.15s;
+}
+.btn:hover{border-color:#C9D6E4; background:#FAFCFE}
+.btn:focus-visible, .opt:focus-visible, .navbtn:focus-visible, .tab:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-visible{
+  outline:3px solid rgba(54,115,185,.35); outline-offset:2px;
+}
+.btn.primary{background:var(--blue); border-color:var(--blue); color:#fff; box-shadow:0 6px 16px rgba(54,115,185,.22)}
+.btn.primary:hover{background:#2E66A9; border-color:#2E66A9}
+.btn.teal{background:var(--teal); border-color:var(--teal); color:#fff; box-shadow:0 6px 16px rgba(38,133,121,.2)}
+.btn.teal:hover{background:#1F766B}
+.btn.ghost{background:transparent}
+.btn.danger{color:#A44A43; border-color:#EBD5D2; background:var(--red-soft)}
+.btn.sm{padding:7px 12px; font-size:13px; border-radius:9px}
+.btn:disabled{opacity:.5; cursor:not-allowed; box-shadow:none}
+.btnrow{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+
+/* ---------- inicio ---------- */
+.hero{
+  background:linear-gradient(135deg,#172C48 0%,#203F63 58%,#1E5E60 100%); color:#fff; border-radius:22px;
+  padding:34px 34px 30px; position:relative; overflow:hidden; box-shadow:0 18px 40px rgba(23,44,72,.22);
+}
+.hero .eyebrow{color:#9FB6D1}
+.hero h1{font-size:clamp(26px,3.8vw,38px); max-width:22ch; letter-spacing:-.02em}
+.hero p{color:#C6D5E6; max-width:56ch; margin-top:12px; font-size:15.5px}
+.hero .btnrow{margin-top:22px}
+.hero .btn.primary{background:#fff; color:#1B3A5C; border-color:#fff}
+.hero .btn.primary:hover{background:#F2F7FC}
+.hero .btn.ghost{color:#fff; border-color:rgba(255,255,255,.36)}
+.hero .btn.ghost:hover{background:rgba(255,255,255,.1)}
+.hero .art{position:absolute; right:-30px; bottom:-34px; width:290px; opacity:.9; pointer-events:none}
+@media(max-width:860px){.hero .art{display:none}}
+
+.statgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-top:16px}
+.stat{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px 18px; box-shadow:var(--shadow)}
+.stat .n{font-size:27px; font-weight:700; letter-spacing:-.02em; line-height:1.1}
+.stat .l{font-size:12.5px; color:var(--muted); margin-top:3px}
+.stat.blue .n{color:var(--blue)} .stat.teal .n{color:var(--teal)} .stat.gold .n{color:var(--gold)}
+
+.feature{display:flex; gap:14px}
+.feature .ficon{
+  width:40px;height:40px;flex:0 0 40px;border-radius:12px;background:var(--blue-soft); display:grid; place-items:center;
+}
+.feature .ficon svg{width:19px;height:19px;stroke:var(--blue);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.feature.t .ficon{background:var(--teal-soft)} .feature.t .ficon svg{stroke:var(--teal)}
+.feature.g .ficon{background:var(--gold-soft)} .feature.g .ficon svg{stroke:var(--gold)}
+.feature h4{font-size:15px; margin-bottom:3px}
+.feature p{font-size:13.5px; color:var(--muted); margin:0}
+
+/* ---------- práctica MCQ ---------- */
+.qhead{display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap; margin-bottom:14px}
+.qtext{font-size:19px; font-weight:650; line-height:1.4; margin:6px 0 18px; letter-spacing:-.01em}
+.opts{display:flex; flex-direction:column; gap:10px}
+.opt{
+  display:flex; gap:12px; align-items:flex-start; text-align:left; width:100%;
+  background:#fff; border:1.5px solid var(--line); border-radius:12px; padding:13px 15px; font-size:15px;
+  transition:border-color .14s, background .14s, transform .1s; color:var(--ink);
+}
+.opt:hover:not(.locked){border-color:#B9CEE5; background:#FBFDFF}
+.opt:active:not(.locked){transform:scale(.997)}
+.opt .k{
+  width:26px;height:26px;flex:0 0 26px;border-radius:8px;background:#F1F5FA;color:#4A5D74;
+  display:grid;place-items:center;font-size:12.5px;font-weight:700;border:1px solid var(--line)
+}
+.opt.pick{border-color:var(--blue); background:var(--blue-soft)}
+.opt.pick .k{background:var(--blue); color:#fff; border-color:var(--blue)}
+.opt.good{border-color:#8FCFC3; background:var(--teal-soft)}
+.opt.good .k{background:var(--teal); color:#fff; border-color:var(--teal)}
+.opt.bad{border-color:#E2B2AD; background:var(--red-soft)}
+.opt.bad .k{background:var(--red); color:#fff; border-color:var(--red)}
+.opt.locked{cursor:default}
+.opt .tag{margin-left:auto; font-size:11.5px; font-weight:700; letter-spacing:.03em; white-space:nowrap; padding-top:3px}
+.opt.good .tag{color:#1C6C62} .opt.bad .tag{color:#A44A43}
+
+.feedback{margin-top:16px; border-radius:13px; padding:15px 17px; border:1px solid; animation:fade .22s ease-out}
+.feedback.ok{background:var(--teal-soft); border-color:#BFE3DB}
+.feedback.no{background:var(--red-soft); border-color:#EBD0CD}
+.feedback .ttl{display:flex; gap:8px; align-items:center; font-weight:700; font-size:14.5px; margin-bottom:6px}
+.feedback .ttl svg{width:18px;height:18px}
+.feedback .ans{font-size:12.5px; font-weight:700; letter-spacing:.02em; opacity:.85; margin-bottom:6px; display:block}
+.feedback.ok .ttl{color:#1C6C62} .feedback.no .ttl{color:#A44A43}
+.feedback p{font-size:14.3px; margin:0; color:#2C3E52}
+@keyframes fade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+
+.freq{margin-top:16px; display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+.freq .lbl{font-size:13px; color:var(--muted); font-weight:600}
+.freqbtns{display:flex; gap:8px}
+.freqbtn{
+  border:1.5px solid var(--line); background:#fff; border-radius:10px; padding:7px 14px; font-size:13.5px; font-weight:600; color:#54677C
+}
+.freqbtn .fs{font-size:11px; color:var(--muted); display:block; font-weight:500}
+.freqbtn.on{border-color:var(--gold); background:var(--gold-soft); color:#8F6522}
+.freqbtn.on .fs{color:#A97F35}
+
+.progline{display:flex; align-items:center; gap:10px; margin-top:6px}
+.bar{height:7px; border-radius:99px; background:#E9EEF4; flex:1; overflow:hidden}
+.bar > i{display:block; height:100%; background:linear-gradient(90deg,#3673B9,#268579); border-radius:99px; transition:width .3s}
+.bar.gold > i{background:linear-gradient(90deg,#C18A36,#D9A44F)}
+
+/* filtros / selectores */
+.seg{display:inline-flex; background:#EBF0F6; border-radius:11px; padding:3px; gap:2px; flex-wrap:wrap}
+.seg button{border:0; background:transparent; padding:7px 13px; border-radius:9px; font-size:13.5px; font-weight:600; color:#5A6B7E}
+.seg button.on{background:#fff; color:var(--ink); box-shadow:0 1px 3px rgba(23,44,72,.12)}
+select, input[type=number]{
+  font:inherit; padding:9px 11px; border-radius:10px; border:1.5px solid var(--line); background:#fff; color:var(--ink); font-size:14px
+}
+label.fld{display:block; font-size:12.5px; font-weight:600; color:var(--muted); margin-bottom:5px}
+
+/* lista de preguntas */
+.qlist{display:flex; flex-direction:column; gap:8px}
+.qrow{
+  display:flex; gap:12px; align-items:flex-start; width:100%; text-align:left; background:#fff;
+  border:1px solid var(--line); border-radius:12px; padding:12px 14px; transition:.14s;
+}
+.qrow:hover{border-color:#C4D6E8; background:#FBFDFF}
+.qrow .num{font-size:12px; font-weight:700; color:var(--muted); min-width:26px; padding-top:2px; font-variant-numeric:tabular-nums}
+.qrow .qt{font-size:14.2px; line-height:1.4}
+.qrow .meta{display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; align-items:center}
+.qrow .st{margin-left:auto; flex:0 0 auto; padding-top:2px}
+
+/* desarrollo */
+.devq{font-size:18px; font-weight:650; line-height:1.45; margin:8px 0 16px}
+textarea{
+  width:100%; min-height:170px; resize:vertical; font:inherit; font-size:14.7px; line-height:1.6;
+  border:1.5px solid var(--line); border-radius:13px; padding:14px 16px; background:#fff; color:var(--ink)
+}
+textarea::placeholder{color:#9AA8B8}
+.rub{display:flex; flex-direction:column; gap:8px; margin-top:10px}
+.rubitem{
+  display:flex; gap:11px; align-items:flex-start; border:1.5px solid var(--line); border-radius:11px; padding:11px 13px;
+  background:#fff; width:100%; text-align:left; font-size:14.2px;
+}
+.rubitem:hover{border-color:#C4D6E8}
+.rubitem.on{border-color:#8FCFC3; background:var(--teal-soft)}
+.chk{
+  width:21px;height:21px;flex:0 0 21px;border-radius:6px;border:1.7px solid #C3D0DE; display:grid; place-items:center; margin-top:1px
+}
+.rubitem.on .chk{background:var(--teal); border-color:var(--teal)}
+.chk svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round; opacity:0}
+.rubitem.on .chk svg{opacity:1}
+.rubitem .pt{margin-left:auto; font-size:12.5px; font-weight:700; color:var(--muted); white-space:nowrap}
+.rubitem.on .pt{color:#1C6C62}
+.kbchips{display:flex; gap:7px; flex-wrap:wrap; margin-top:12px}
+.kbchip{
+  font-size:12.5px; border-radius:999px; padding:4px 11px; border:1px solid var(--line); background:#F6F9FC; color:#5A6B7E;
+}
+.kbchip.hit{background:var(--teal-soft); border-color:#BFE3DB; color:#1C6C62; font-weight:600}
+/* pistas y explicación */
+.hintbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px}
+.hintcount{font-size:12px; font-weight:600; color:#8F6522; background:var(--gold-soft); border:1px solid #EEDFC2;
+  border-radius:999px; padding:3px 10px; font-variant-numeric:tabular-nums}
+.hintitem{display:flex; gap:10px; align-items:flex-start; background:var(--gold-soft); border:1px solid #EEDFC2;
+  border-radius:12px; padding:11px 13px; margin-top:8px; font-size:14.2px; line-height:1.5; animation:hin .22s ease-out}
+@keyframes hin{from{opacity:0; transform:translateY(-4px)} to{opacity:1; transform:none}}
+.hintitem .hn{width:22px;height:22px;flex:0 0 22px;border-radius:50%;background:var(--gold);color:#fff;
+  font-size:11.5px;font-weight:700;display:grid;place-items:center;margin-top:1px}
+.expbox{margin-top:14px; background:#fff; border:1px solid #EEDFC2; border-left:3px solid var(--gold);
+  border-radius:12px; padding:14px 16px; animation:hin .22s ease-out}
+.expbox .eyebrow{color:#8F6522}
+.expbox p{font-size:14.4px; line-height:1.62; margin:0}
+.expnote{font-size:12.3px; color:var(--muted); margin-top:10px; display:flex; gap:6px; align-items:flex-start; line-height:1.5}
+.expnote svg{width:14px; height:14px; flex:0 0 14px; margin-top:2px; stroke:var(--gold); fill:none; stroke-width:2;
+  stroke-linecap:round; stroke-linejoin:round}
+.btn svg[data-i]{pointer-events:none}
+.summary{display:flex; gap:18px; align-items:center; flex-wrap:wrap}
+.score{font-size:38px; font-weight:700; letter-spacing:-.02em; line-height:1}
+.score small{font-size:15px; color:var(--muted); font-weight:500; letter-spacing:0}
+
+/* simulacro */
+.timerbox svg{width:20px;height:20px;fill:none;stroke:var(--muted);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.timer{font-variant-numeric:tabular-nums; font-weight:700; font-size:19px; letter-spacing:-.01em}
+.timer.warn{color:var(--red)}
+.timerbox{display:flex; align-items:center; gap:10px; background:#fff; border:1px solid var(--line); border-radius:12px; padding:8px 14px; box-shadow:var(--shadow)}
+.steps{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
+.step{
+  display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--muted); background:#fff; border:1px solid var(--line);
+  border-radius:999px; padding:5px 12px; font-weight:600
+}
+.step .sn{width:17px;height:17px;border-radius:50%;background:#EDF2F8;display:grid;place-items:center;font-size:10.5px;color:#5A6B7E}
+.step.on{border-color:#B9CEE5; background:var(--blue-soft); color:#2A5C93}
+.step.on .sn{background:var(--blue); color:#fff}
+.step.done{border-color:#BFE3DB; background:var(--teal-soft); color:#1C6C62}
+.step.done .sn{background:var(--teal); color:#fff}
+.dots{display:flex; gap:5px; flex-wrap:wrap}
+.dotsm{
+  width:26px;height:26px;border-radius:8px;border:1.4px solid var(--line);background:#fff; font-size:11.5px; font-weight:700;
+  color:#6D7B8C; display:grid; place-items:center; font-variant-numeric:tabular-nums
+}
+.dotsm.cur{border-color:var(--blue); background:var(--blue); color:#fff}
+.dotsm.ans{border-color:#B9CEE5; background:var(--blue-soft); color:#2A5C93}
+.dotsm.ans.cur{background:var(--blue); color:#fff}
+.two{display:grid; grid-template-columns:1fr 300px; gap:16px; align-items:start}
+@media(max-width:980px){.two{grid-template-columns:1fr}}
+.panel-mini{background:#fff; border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow); padding:16px 18px; position:sticky; top:20px}
+.panel-mini h4{font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:10px}
+
+table.tb{width:100%; border-collapse:collapse; font-size:13.7px}
+table.tb th{text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); padding:8px 10px; border-bottom:1px solid var(--line); font-weight:600}
+table.tb td{padding:9px 10px; border-bottom:1px solid #EFF3F7; vertical-align:middle}
+table.tb tr:last-child td{border-bottom:0}
+.tb .r{text-align:right; font-variant-numeric:tabular-nums}
+.tb .strong{font-weight:700}
+
+.heat{display:grid; gap:6px}
+.heatrow{display:grid; grid-template-columns:1fr 92px 52px; gap:10px; align-items:center}
+.heattrack{height:9px; background:#EDF2F8; border-radius:99px; overflow:hidden}
+.heattrack > i{display:block; height:100%; border-radius:99px; min-width:2px}
+
+.empty{
+  border:1.5px dashed #D6E0EB; border-radius:14px; padding:30px 20px; text-align:center; color:var(--muted); font-size:14px; background:#FBFCFE
+}
+.toast{
+  position:fixed; left:50%; bottom:26px; transform:translate(-50%,14px); background:var(--navy); color:#fff;
+  padding:11px 18px; border-radius:11px; font-size:13.8px; box-shadow:0 12px 30px rgba(23,44,72,.3);
+  opacity:0; pointer-events:none; transition:.22s; z-index:99; max-width:90vw; margin-bottom:16px
+}
+.toast.show{opacity:1; transform:translate(-50%,0)}
+.kbd{font-family:var(--mono); font-size:11.5px; background:#F1F5FA; border:1px solid var(--line); border-bottom-width:2px; border-radius:6px; padding:1px 6px; color:#4A5D74}
+
+/* móvil */
+@media(max-width:820px){
+  .app{flex-direction:column}
+  .btnrow{gap:8px}
+  .btnrow .btn{flex:1 1 auto; justify-content:center}
+  .btnrow #wcount{flex:1 1 100%; margin-left:0!important; text-align:right}
+  .hintbar{gap:8px}
+  .hintbar .btn{flex:1 1 auto; justify-content:center}
+  .hintcount{order:3}
+  .seg{display:flex; width:100%; flex-wrap:nowrap; max-width:100%}
+  .seg button{flex:1 1 0; min-width:0; padding:7px 3px; font-size:11.8px; letter-spacing:-.01em; text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .side{
+    position:sticky; top:0; z-index:30; height:auto; width:100%; flex:none; padding:10px 12px 8px; gap:8px;
+    box-shadow:0 2px 12px rgba(23,44,72,.18);
+  }
+  .brand{padding:0 2px}
+  .brand .mark{width:30px;height:30px;flex:0 0 30px;font-size:12.5px;border-radius:9px}
+  .brand b{font-size:13px} .brand span{font-size:10px}
+  .side .foot{display:none}
+  nav{display:grid; grid-template-columns:repeat(5,1fr); gap:4px}
+  nav .sec{display:none}
+  .navbtn{justify-content:center; text-align:center; padding:8px 2px; font-size:11.6px; line-height:1.2}
+  .navbtn .ico{display:none}
+  .navbtn .nl{display:none}
+  .navbtn .ns{display:inline}
+  main{padding:16px 14px 60px}
+  .h1{font-size:25px}
+  .card{padding:15px}
+  .qtext{font-size:16.5px}
+  .opt{padding:11px 12px; font-size:14.2px; gap:9px}
+  .opt .k{width:23px;height:23px;flex:0 0 23px;font-size:11.5px}
+  .hero{padding:22px 18px}
+  .stat{padding:13px 14px}
+  .stat .n{font-size:22px}
+  .two{gap:12px}
+  .panel-mini{padding:14px}
+  table.tb{font-size:12.5px}
+  table.tb th, table.tb td{padding:7px 6px}
+  .score{font-size:32px}
+  .dotsm{width:24px;height:24px;font-size:11px}
+  .seg button{padding:6px 9px; font-size:12.8px}
+  .row > div{flex:1 1 100%; min-width:0}
+  .seg{display:flex; width:100%; flex-wrap:nowrap; max-width:100%}
+  .seg button{flex:1 1 0; min-width:0; padding:6px 2px; font-size:11px; white-space:nowrap;
+    overflow:hidden; text-overflow:ellipsis; letter-spacing:-.02em}
+  .card{padding:17px}
+  .qtext{font-size:17px}
+  .hero{padding:24px 20px}
+  .panel-mini{position:static}
+}
+@media(max-width:480px){
+  .g4{grid-template-columns:repeat(2,1fr)}
+  .stat .n{font-size:23px}
+}
+@media print{
+  .side,.btnrow,.mobibar{display:none!important}
+  main{padding:0}
+  .card{box-shadow:none; break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="mark">SO</div>
+      <div>
+        <b>Preparador de parcial</b>
+        <span>Sistemas Operativos</span>
+      </div>
+    </div>
+    <nav id="nav">
+      <div class="sec">Estudio</div>
+      <button class="navbtn on" data-view="inicio">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></span><span class="nl">Inicio</span><span class="ns">Inicio</span></button>
+      <button class="navbtn" data-view="multiple">
+        <span class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h10M7 13h10M7 17h5"/></svg></span><span class="nl">Opción múltiple</span><span class="ns">Múltiple</span></button>
+      <button class="navbtn" data-view="desarrollo">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M6 15V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v9"/><path d="M9 8h6M9 12h4"/></svg></span><span class="nl">Desarrollo</span><span class="ns">Desarrollo</span></button>
+      <button class="navbtn" data-view="simulacro">
+        <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2"/><path d="M9 3h6"/></svg></span><span class="nl">Simulacro</span><span class="ns">Simulacro</span></button>
+      <button class="navbtn" data-view="progreso">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span><span class="nl">Progreso</span><span class="ns">Progreso</span></button>
+    </nav>
+    <div class="foot">
+      <span class="dot-live"></span><b id="footEstado">Todo guardado local</b><br>
+      <span id="footDetalle">200 MCQ · 100 desarrollo</span><br>
+      <span id="footProg">0/200 dominadas</span>
+    </div>
+  </aside>
+
+  <main><div class="wrap" id="app"></div></main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="banco.js"></script>
+<script>
+/* =========================================================
+   Estado y persistencia
+   ========================================================= */
+const LS = 'prep-so-v1';
+const BANCO = window.BANCO;
+const TEMAS = BANCO.temas;
+const CORTE_APROBADO = 60;
+
+const estadoInicial = () => ({
+  mcq:{},        // id -> {v, r, n, freq, ultimo}
+  dev:{},        // id -> {v, r, n, hits, pts, ultimo}
+  examenes:[],   // {fecha, nota, parte1, parte2, temas:{tema:{ok,tot}}, segundos, limite}
+  simPendiente:null
+});
+let S = cargar();
+
+function cargar(){
+  try{
+    const raw = localStorage.getItem(LS);
+    if(!raw) return estadoInicial();
+    const d = JSON.parse(raw);
+    return Object.assign(estadoInicial(), d);
+  }catch(e){ return estadoInicial(); }
+}
+function guardar(){
+  try{ localStorage.setItem(LS, JSON.stringify(S)); }catch(e){}
+  const e = document.getElementById('footEstado');
+  if(e){
+    const total = Object.keys(S.mcq).length + Object.keys(S.dev).length;
+    e.textContent = total ? `Progreso guardado (${total} ítems)` : 'Todo guardado local';
+  }
+}
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+const hoy = () => new Date().toISOString().slice(0,10);
+function diasDesde(f){ return Math.max(0, Math.round((new Date(hoy()) - new Date(f))/86400000)); }
+
+/* utilidades */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; };
+const pct = (a,b) => b ? Math.round(100*a/b) : 0;
+function fmtSeg(s){ s=Math.max(0,Math.round(s)); const m=Math.floor(s/60), r=s%60; return `${String(m).padStart(2,'0')}:${String(r).padStart(2,'0')}`; }
+
+/* =========================================================
+   Datos derivados
+   ========================================================= */
+const MCQ = BANCO.mcq, DEV = BANCO.dev;
+const porId = Object.fromEntries(MCQ.map(x=>[x.id,x]));
+const devPorId = Object.fromEntries(DEV.map(x=>[x.id,x]));
+
+function estadoMcq(id){
+  const s = S.mcq[id];
+  if(!s) return 'nuevo';
+  if(s.r === 1) return 'dominado';
+  if(s.v > 0) return 'fallada';
+  return 'vista';
+}
+function dominioPorTema(){
+  return TEMAS.map(t=>{
+    const items = MCQ.filter(x=>x.tema===t);
+    const ok = items.filter(x=>S.mcq[x.id] && S.mcq[x.id].r===1).length;
+    const devs = DEV.filter(x=>x.tema===t);
+    const devOk = devs.filter(x=>S.dev[x.id] && S.dev[x.id].r===1).length;
+    return {tema:t, mcq:items.length, ok, dev:devs.length, devOk};
+  });
+}
+function totales(){
+  const vm = Object.values(S.mcq).filter(x=>x.v>0).length;
+  const dom = Object.values(S.mcq).filter(x=>x.r===1).length;
+  const vd = Object.values(S.dev).filter(x=>x.v>0).length;
+  const domd = Object.values(S.dev).filter(x=>x.r===1).length;
+  const notas = S.examenes.map(e=>e.nota);
+  const mejor = notas.length ? Math.max(...notas) : 0;
+  const prom = notas.length ? Math.round(notas.reduce((a,b)=>a+b,0)/notas.length) : 0;
+  return {vm, dom, vd, domd, examenes:S.examenes.length, mejor, prom};
+}
+
+/* =========================================================
+   Router
+   ========================================================= */
+let vista = 'inicio';
+function ir(v, params){
+  vista = v;
+  document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('on', b.dataset.view===v));
+  const el = document.getElementById('app');
+  el.innerHTML = '';
+  ({inicio,multiple,desarrollo,simulacro,progreso}[v] || inicio)(el, params||{});
+  window.scrollTo({top:0, behavior:'instant'});
+  guardar();
+  actualizarFoot();
+}
+function actualizarFoot(){
+  const f = document.getElementById('footProg');
+  const t = totales();
+  if(f) f.textContent = `${t.dom}/${MCQ.length} dominadas · ${S.examenes.length} simulacro(s)`;
+}
+document.getElementById('nav').addEventListener('click', e=>{
+  const b = e.target.closest('.navbtn'); if(!b) return;
+  if(vista==='simulacro' && simEnCurso && !simEnCurso.enviado){
+    if(!confirm('Hay un simulacro en curso. ¿Salir y perder el progreso de este intento?')) return;
+    simEnCurso = null;
+  }
+  ir(b.dataset.view);
+});
+
+/* =========================================================
+   Iconos
+   ========================================================= */
+const IC = {
+  ok:'<svg viewBox="0 0 24 24"><path d="m20 6-11 11-5-5"/></svg>',
+  no:'<svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>',
+  check:'<svg viewBox="0 0 24 24"><path d="m20 6-11 11-5-5"/></svg>',
+  brain:'<svg viewBox="0 0 24 24"><path d="M12 5a3 3 0 0 0-6 0v.5A2.5 2.5 0 0 0 4 8v1a3 3 0 0 0 0 6v1a2.5 2.5 0 0 0 2.5 2.5A3 3 0 0 0 12 19"/><path d="M12 5a3 3 0 0 1 6 0v.5A2.5 2.5 0 0 1 20 8v1a3 3 0 0 1 0 6v1a2.5 2.5 0 0 1-2.5 2.5A3 3 0 0 1 12 19"/></svg>',
+  list:'<svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+  pen:'<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+  clock:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  chart:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  bulb:'<svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.5.4.8 1 .8 1.6v.5h5.4v-.5c0-.6.3-1.2.8-1.6A6 6 0 0 0 12 3Z"/></svg>',
+  eye:'<svg viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>',
+  info:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>'
+};
+
+/* =========================================================
+   VISTA: Inicio
+   ========================================================= */
+function inicio(el){
+  const t = totales();
+  const pctBank = pct(t.dom, MCQ.length);
+  el.innerHTML = `
+  <section class="hero">
+    <svg class="art" viewBox="0 0 240 200" fill="none" stroke="#fff" stroke-width="2" opacity=".28">
+      <path d="M40 150 V60 a10 10 0 0 1 10-10 h60 l20 22 h60 a10 10 0 0 1 10 10 v68 a10 10 0 0 1-10 10 H50 a10 10 0 0 1-10-10 Z"/>
+      <path d="M60 100h120M60 120h80M60 140h100" stroke-linecap="round"/>
+      <circle cx="196" cy="46" r="26" stroke-dasharray="4 6"/>
+      <path d="M186 46h20M196 36v20" stroke-linecap="round"/>
+    </svg>
+    <div class="eyebrow">Temas 4 y 5 · Laboratorio de Kubernetes</div>
+    <h1>Llegá al parcial con el banco de preguntas en la cabeza</h1>
+    <p>Practicá opción múltiple con corrección inmediata y frecuencia ajustable, resolvé desarrollo contra la rúbrica real del profesor y medí tus fuerzas con simulacros de 15 + 5 preguntas.</p>
+    <div class="btnrow">
+      <button class="btn primary" data-go="multiple">Empezar a practicar</button>
+      <button class="btn ghost" data-go="simulacro">Hacer un simulacro</button>
+    </div>
+  </section>
+
+  <div class="statgrid">
+    <div class="stat blue"><div class="n">${MCQ.length}</div><div class="l">preguntas de opción múltiple</div></div>
+    <div class="stat teal"><div class="n">${DEV.length}</div><div class="l">preguntas de desarrollo con rúbrica</div></div>
+    <div class="stat"><div class="n">${pctBank}%</div><div class="l">del banco MCQ dominado</div></div>
+    <div class="stat gold"><div class="n">${t.mejor || '—'}</div><div class="l">mejor nota en simulacro${t.mejor ? ' /100' : ''}</div></div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="qhead"><div>
+      <div class="eyebrow">Cómo está armado el parcial</div>
+      <h3 style="font-size:18px">Parte I: 15 opción múltiple · Parte II: 5 desarrollo · 100 puntos</h3>
+    </div>
+    <span class="pill gold">4 × correcta − 1 × incorrecta</span></div>
+    <div class="grid g3" style="margin-top:6px">
+      <div class="feature"><div class="ficon">${IC.list}</div><div>
+        <h4>Opción múltiple</h4><p>Cada respuesta se corrige al instante, con el fundamento del profesor. Marcás de 1 a 3 y la pregunta vuelve con más frecuencia.</p></div></div>
+      <div class="feature t"><div class="ficon">${IC.pen}</div><div>
+        <h4>Desarrollo</h4><p>Escribís con tus palabras; la app detecta las palabras clave y te muestra los criterios de corrección reales para que te autoevalúes.</p></div></div>
+      <div class="feature g"><div class="ficon">${IC.clock}</div><div>
+        <h4>Simulacro</h4><p>15 MCQ al azar + 5 de desarrollo, con tiempo libre o límite a elección. Al final, temas a reforzar.</p></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="qhead" style="margin-bottom:8px"><h3 style="font-size:16px">Tu avance por tema</h3>
+    <button class="btn sm" data-go="progreso">Ver detalle</button></div>
+    <div class="heat" style="margin-top:10px">
+      ${dominioPorTema().map(d=>{
+        const p = pct(d.ok, d.mcq); return `
+        <div class="heatrow">
+          <div class="small" style="font-weight:600">${esc(d.tema)}</div>
+          <div class="heattrack"><i style="width:${p}%;background:${p>=70?'#268579':p>=40?'#3673B9':'#C18A36'}"></i></div>
+          <div class="tiny muted r" style="text-align:right;font-variant-numeric:tabular-nums">${d.ok}/${d.mcq}</div>
+        </div>`;}).join('')}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:16px;margin-bottom:10px">Plan sugerido</h3>
+    <div class="grid g2">
+      <div><p class="small" style="margin-bottom:8px"><b>1.</b> Empezá por <b>Opción múltiple</b> con filtro "Pendientes" en los temas con menor avance: Inodos, Permisos y Rutas son el 35% de la Parte I.</p>
+      <p class="small" style="margin-bottom:8px"><b>2.</b> Pasá a <b>Desarrollo</b>: la Parte II son siempre 5 preguntas, una por eje, y valen 40 puntos. Escribí sin mirar la respuesta y después autoevaluate con la rúbrica.</p>
+      <p class="small"><b>3.</b> Cerrá cada día con un <b>Simulacro</b> con tiempo. Con 3 seguidos de 85+ y ningún tema por debajo del 60% estás listo.</p></div>
+      <div class="empty" style="text-align:left;padding:16px 18px">
+        <b class="small" style="color:var(--ink)">Ojo con el −1</b>
+        <p class="small" style="margin:6px 0 0">Responder al azar entre 4 opciones da −0,25 esperado. Si descartás dos, el esperado es +1,5: ahí sí conviene arriesgar. Si no podés descartar nada, dejar en blanco es mejor.</p>
+      </div>
+    </div>
+  </div>
+  `;
+  el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>ir(b.dataset.go));
+}
+
+/* =========================================================
+   VISTA: Opción múltiple
+   ========================================================= */
+let prac = {tema:'todos', estado:'todas', lista:[], i:0, revelado:false, pick:null, filtroAbierto:false};
+
+function multiple(el){
+  const filtradas = () => {
+    let a = MCQ.slice();
+    if(prac.tema!=='todos') a = a.filter(x=>x.tema===prac.tema);
+    if(prac.estado==='pendientes') a = a.filter(x=>estadoMcq(x.id)!=='dominado');
+    if(prac.estado==='falladas') a = a.filter(x=>estadoMcq(x.id)==='fallada');
+    if(prac.estado==='dominadas') a = a.filter(x=>estadoMcq(x.id)==='dominado');
+    return a;
+  };
+  if(!prac.lista.length || prac._recalc){
+    prac.lista = ordenarPorFrecuencia(filtradas());
+    prac.i = Math.min(prac.i, Math.max(0, prac.lista.length-1));
+    prac._recalc = false;
+  }
+  const L = prac.lista;
+  const total = L.length;
+
+  el.innerHTML = `
+  <div class="qhead">
+    <div>
+      <div class="eyebrow">Práctica</div>
+      <h1 class="h1">Opción múltiple</h1>
+      <p class="lead" style="margin-top:6px">Elegí una respuesta, se corrige al instante y ves el fundamento. Después marcá del 1 al 3 cuánto querés que vuelva a aparecer.</p>
+    </div>
+    <div class="btnrow">
+      <button class="btn" id="btnExplorar">${IC.list} Ver todas (${total})</button>
+    </div>
+  </div>
+
+  <div class="card" style="padding:16px 18px">
+    <div class="row" style="align-items:flex-end;gap:14px">
+      <div style="flex:1 1 220px">
+        <label class="fld" for="fTema">Tema</label>
+        <select id="fTema" style="width:100%">
+          <option value="todos">Todos los temas</option>
+          ${TEMAS.map(t=>`<option value="${esc(t)}" ${prac.tema===t?'selected':''}>${esc(t)}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <label class="fld">Estado</label>
+        <div class="seg" id="fEstado">
+          ${['todas','pendientes','falladas','dominadas'].map(s=>`<button data-s="${s}" class="${prac.estado===s?'on':''}">${s[0].toUpperCase()+s.slice(1)}</button>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="pracZona"></div>`;
+
+  el.querySelector('#fTema').onchange = e => { prac.tema = e.target.value; prac.i=0; prac._recalc=true; prac.revelado=false; prac.pick=null; multiple(el); };
+  el.querySelectorAll('#fEstado button').forEach(b=>b.onclick=()=>{ prac.estado=b.dataset.s; prac.i=0; prac._recalc=true; prac.revelado=false; prac.pick=null; multiple(el); });
+  el.querySelector('#btnExplorar').onclick = () => abrirLista();
+
+  pintarPregunta(el);
+}
+
+function ordenarPorFrecuencia(a){
+  // frequency 3 → aparece primero · ordena intercalando: prioridad y azar
+  return shuffle(a).sort((x,y)=>{
+    const fx = S.mcq[x.id]?.freq || 1, fy = S.mcq[y.id]?.freq || 1;
+    if(fx!==fy) return fy-fx;
+    return 0;
+  });
+}
+
+function pintarPregunta(el){
+  const zona = el.querySelector('#pracZona');
+  if(!zona) return;
+  const L = prac.lista;
+  if(!L.length){
+    zona.innerHTML = `<div class="empty">No hay preguntas con ese filtro.<br><span class="tiny">Probá con “Todas” o con otro tema.</span></div>`;
+    return;
+  }
+  const q = L[prac.i];
+  const st = S.mcq[q.id] || {v:0,r:0,n:0,freq:1};
+  const respondido = prac.revelado;
+  const elegida = prac.pick;
+  const dominadas = L.filter(x=>estadoMcq(x.id)==='dominado').length;
+
+  zona.innerHTML = `
+  <div class="card">
+    <div class="qhead">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <span class="pill blue">${esc(q.tema)}</span>
+        <span class="pill gray">${esc(q.src)}</span>
+        ${st.freq>1 ? `<span class="pill gold">Frecuencia ${st.freq}</span>`:''}
+        ${estadoMcq(q.id)==='dominado' ? `<span class="pill teal">${IC.ok} dominada</span>`:''}
+      </div>
+      <div class="small muted" style="font-variant-numeric:tabular-nums">${prac.i+1} / ${L.length}</div>
+    </div>
+    <div class="progline"><div class="bar"><i style="width:${pct(prac.i, L.length)}%"></i></div><span class="tiny muted">${dominadas} de ${MCQ.length} dominadas</span></div>
+
+    <div class="qtext">${esc(q.q)}</div>
+    <div class="opts" id="opts">
+      ${q.o.map((o,k)=>`
+        <button class="opt ${respondido? 'locked':''} ${respondido && k===q.ok ? 'good':''} ${respondido && k===elegida && k!==q.ok ? 'bad':''}"
+          data-k="${k}" ${respondido?'disabled':''}>
+          <span class="k">${'ABCD'[k]}</span>
+          <span>${esc(o)}</span>
+          ${respondido && k===q.ok ? `<span class="tag">Correcta</span>`:''}
+          ${respondido && k===elegida && k!==q.ok ? `<span class="tag">Tu elección</span>`:''}
+        </button>`).join('')}
+    </div>
+
+    ${respondido ? `
+      <div class="feedback ${elegida===q.ok?'ok':'no'}">
+        <div class="ttl">${elegida===q.ok ? IC.ok+' ¡Correcta!' : IC.no+' No era esa'}</div>
+        ${elegida===q.ok ? '' : `<span class="ans">LA CORRECTA ERA ${'ABCD'[q.ok]}</span>`}
+        <p>${esc(q.f)}</p>
+      </div>
+      <div class="freq">
+        <span class="lbl">¿Cuánto querés que vuelva?</span>
+        <div class="freqbtns" id="freqbtns">
+          <button class="freqbtn ${st.freq===1?'on':''}" data-f="1">1 <span class="fs">poco</span></button>
+          <button class="freqbtn ${st.freq===2?'on':''}" data-f="2">2 <span class="fs">normal</span></button>
+          <button class="freqbtn ${st.freq===3?'on':''}" data-f="3">3 <span class="fs">mucho</span></button>
+        </div>
+      </div>` : `<p class="tiny muted" style="margin-top:14px">Elegí una opción para ver la corrección y el fundamento.</p>`}
+
+    <hr class="sep">
+    <div class="btnrow">
+      <button class="btn sm" id="prev" ${prac.i===0?'disabled':''}>← Anterior</button>
+      <button class="btn sm primary" id="next">${prac.i+1>=L.length?'Volver al inicio de la lista':'Siguiente →'}</button>
+      <button class="btn sm ghost" id="saltar">Otra al azar</button>
+      <span class="tiny muted" style="margin-left:auto">${S.mcq[q.id] ? `Vista ${S.mcq[q.id].v} ${S.mcq[q.id].v===1?'vez':'veces'}` : 'Primera vez'}</span>
+    </div>
+  </div>`;
+
+  if(!respondido){
+    zona.querySelectorAll('#opts .opt').forEach(b=>b.onclick=()=>responder(parseInt(b.dataset.k,10), q, el));
+  } else {
+    zona.querySelectorAll('#freqbtns button').forEach(b=>b.onclick=()=>{
+      const f = parseInt(b.dataset.f,10);
+      S.mcq[q.id].freq = f; guardar();
+      zona.querySelectorAll('#freqbtns button').forEach(x=>x.classList.toggle('on', x===b));
+      toast(`Esta pregunta vuelve con frecuencia ${f}`);
+    });
+  }
+  zona.querySelector('#prev').onclick = ()=>{ prac.i=Math.max(0,prac.i-1); prac.revelado=false; prac.pick=null; pintarPregunta(el); };
+  zona.querySelector('#next').onclick = ()=>{
+    if(prac.i+1>=prac.lista.length){ prac.i=0; prac.lista = ordenarPorFrecuencia(prac.lista); toast('Volviste al inicio de la lista'); }
+    else prac.i++;
+    prac.revelado=false; prac.pick=null; pintarPregunta(el);
+  };
+  zona.querySelector('#saltar').onclick = ()=>{
+    prac.i = Math.floor(Math.random()*prac.lista.length); prac.revelado=false; prac.pick=null; pintarPregunta(el);
+  };
+}
+
+function responder(k, q, el){
+  const correcta = (k===q.ok);
+  const s = S.mcq[q.id] || {v:0,r:0,n:0,freq:1,ultimo:null};
+  s.v = (s.v||0)+1; s.n = (s.n||0)+1;
+  s.r = correcta ? 1 : 0;
+  s.ultimo = hoy();
+  S.mcq[q.id] = s; guardar(); actualizarFoot();
+  prac.pick = k; prac.revelado = true;
+  pintarPregunta(el);
+}
+
+/* ---- modal: todas las preguntas ---- */
+function abrirLista(){
+  const cont = document.createElement('div');
+  cont.style.cssText = 'position:fixed;inset:0;background:rgba(23,44,72,.45);z-index:80;display:flex;align-items:flex-start;justify-content:center;padding:28px 14px;overflow:auto';
+  const todos = MCQ.slice();
+  cont.innerHTML = `
+    <div style="background:#fff;border-radius:18px;max-width:820px;width:100%;box-shadow:0 24px 60px rgba(23,44,72,.3);overflow:hidden">
+      <div style="padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;background:#fff;z-index:2">
+        <div style="flex:1;min-width:200px">
+          <div class="eyebrow" style="margin-bottom:2px">Banco completo</div>
+          <h3 style="font-size:17px">${todos.length} preguntas de opción múltiple</h3>
+        </div>
+        <div class="seg" id="lstFiltro">
+          <button data-s="todas" class="on">Todas</button>
+          <button data-s="pendientes">Pendientes</button>
+          <button data-s="falladas">Falladas</button>
+          <button data-s="dominadas">Dominadas</button>
+        </div>
+        <button class="btn sm" id="cerrar">Cerrar</button>
+      </div>
+      <div style="padding:14px 16px" id="lstBody"></div>
+    </div>`;
+  document.body.appendChild(cont);
+  cont.querySelector('#cerrar').onclick = ()=>cont.remove();
+  cont.addEventListener('click', e=>{ if(e.target===cont) cont.remove(); });
+  const pintar = (filtro)=>{
+    let a = todos;
+    if(filtro==='pendientes') a = a.filter(x=>estadoMcq(x.id)!=='dominado');
+    if(filtro==='falladas') a = a.filter(x=>estadoMcq(x.id)==='fallada');
+    if(filtro==='dominadas') a = a.filter(x=>estadoMcq(x.id)==='dominado');
+    cont.querySelector('#lstBody').innerHTML = a.length ? `<div class="qlist">${a.map((x,i)=>{
+      const e = estadoMcq(x.id);
+      const st = S.mcq[x.id];
+      const pill = e==='dominado' ? '<span class="pill teal">dominada</span>' : e==='fallada' ? '<span class="pill red">fallada</span>' : e==='vista' ? '<span class="pill gray">vista</span>' : '<span class="pill gray">nueva</span>';
+      const fq = st && st.freq>1 ? `<span class="pill gold">freq ${st.freq}</span>` : '';
+      return `<button class="qrow" data-id="${x.id}">
+        <span class="num">${String(MCQ.indexOf(x)+1).padStart(2,'0')}</span>
+        <span style="flex:1;min-width:0">
+          <span class="qt">${esc(x.q)}</span>
+          <span class="meta">${pill}${fq}<span class="tiny muted">${esc(x.tema)}</span></span>
+        </span>
+        <span class="st tiny muted">›</span>
+      </button>`;}).join('')}</div>` : `<div class="empty">No hay preguntas en este estado.</div>`;
+    cont.querySelectorAll('.qrow').forEach(b=>b.onclick=()=>{
+      const id = b.dataset.id;
+      const idx = prac.lista.findIndex(x=>x.id===id);
+      if(idx>=0) prac.i = idx;
+      else { prac._recalc = true; prac.lista = ordenarPorFrecuencia(MCQ.slice()); prac.i = prac.lista.findIndex(x=>x.id===id); }
+      prac.revelado = false; prac.pick = null;
+      cont.remove();
+      const main = document.getElementById('app');
+      pintarPregunta(main);
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+  };
+  pintar('todas');
+  cont.querySelectorAll('#lstFiltro button').forEach(b=>b.onclick=()=>{
+    cont.querySelectorAll('#lstFiltro button').forEach(x=>x.classList.toggle('on',x===b));
+    pintar(b.dataset.s);
+  });
+}
+
+/* =========================================================
+   VISTA: Desarrollo
+   ========================================================= */
+let dev = {tema:'todos', estado:'todas', lista:[], i:0, texto:'', fase:'escribir', rub:[], expVista:false, hints:0};
+
+function desarrollo(el){
+  if(!dev.lista.length || dev._recalc){
+    let a = DEV.slice();
+    if(dev.tema!=='todos') a = a.filter(x=>x.tema===dev.tema);
+    if(dev.estado==='pendientes') a = a.filter(x=>!S.dev[x.id] || S.dev[x.id].r!==1);
+    if(dev.estado==='falladas') a = a.filter(x=>S.dev[x.id] && S.dev[x.id].r===0);
+    if(dev.estado==='dominadas') a = a.filter(x=>S.dev[x.id] && S.dev[x.id].r===1);
+    dev.lista = shuffle(a);
+    dev.i = 0; dev._recalc = false; dev.fase='escribir'; dev.texto=''; dev.rub=[]; dev.expVista=false; dev.hints=0; dev.hints=0;
+  }
+  el.innerHTML = `
+  <div class="qhead">
+    <div>
+      <div class="eyebrow">Parte II · 40 puntos</div>
+      <h1 class="h1">Desarrollo</h1>
+      <p class="lead" style="margin-top:6px">Escribí con tus palabras. La app resalta las palabras clave que usaste y te da la rúbrica real del profesor para autoevaluarte: no hace falta copiar la respuesta.</p>
+    </div>
+  </div>
+  <div class="card" style="padding:16px 18px">
+    <div class="row" style="align-items:flex-end">
+      <div style="flex:1 1 220px">
+        <label class="fld" for="dTema">Tema</label>
+        <select id="dTema" style="width:100%">
+          <option value="todos">Todos los temas</option>
+          ${TEMAS.map(t=>`<option value="${esc(t)}" ${dev.tema===t?'selected':''}>${esc(t)}</option>`).join('')}
+        </select>
+      </div>
+      <div>
+        <label class="fld">Estado</label>
+        <div class="seg" id="dEstado">
+          ${['todas','pendientes','falladas','dominadas'].map(s=>`<button data-s="${s}" class="${dev.estado===s?'on':''}">${s[0].toUpperCase()+s.slice(1)}</button>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="devZona"></div>`;
+  el.querySelector('#dTema').onchange = e=>{ dev.tema=e.target.value; dev._recalc=true; dev.lista=[]; desarrollo(el); };
+  el.querySelectorAll('#dEstado button').forEach(b=>b.onclick=()=>{ dev.estado=b.dataset.s; dev._recalc=true; dev.lista=[]; desarrollo(el); });
+  pintarDev(el);
+}
+
+function normaliza(s){
+  return s.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s]/g,' ')
+    .replace(/\s+/g,' ').trim();
+}
+function detectar(texto, kb){
+  const t = ' '+normaliza(texto)+' ';
+  return kb.map(k=>{
+    const kn = normaliza(k);
+    // coincidencia por substring de la clave normalizada (permite plurales/variantes)
+    const hit = kn.split(' ').every(w => t.includes(w));
+    return {k, hit};
+  });
+}
+
+function pintarDev(el){
+  const zona = el.querySelector('#devZona');
+  if(!dev.lista.length){ zona.innerHTML = `<div class="empty">No hay preguntas con ese filtro.</div>`; return; }
+  const q = dev.lista[dev.i];
+  const prev = S.dev[q.id];
+  const hits = dev.fase==='evaluar' ? detectar(dev.texto, q.kb) : [];
+  const nHits = hits.filter(h=>h.hit).length;
+
+  zona.innerHTML = `
+  <div class="card">
+    <div class="qhead">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <span class="pill blue">${esc(q.tema)}</span>
+        <span class="pill gray">${esc(q.src)}</span>
+        <span class="pill gold">8 pts</span>
+        ${!prev ? '' : prev.r===1 ? '<span class="pill teal">resuelta</span>'
+          : prev.pts!==undefined ? `<span class="pill red">a repasar</span>${prev.usoExp?'<span class="pill gold">con ayuda</span>':''}`
+          : (prev.usoExp||prev.usoPista) ? '<span class="pill gold">con ayuda</span>' : ''}
+      </div>
+      <div class="small muted" style="font-variant-numeric:tabular-nums">${dev.i+1} / ${dev.lista.length}</div>
+    </div>
+
+    <div class="devq">${esc(q.q)}</div>
+
+    ${dev.fase==='escribir' ? `
+      <div class="hintbar" style="margin:0 0 12px">
+        <button class="btn ghost sm" id="bPista">${IC.bulb} Pedir pista</button>
+        <span class="hintcount" id="hintCount">0 de 3 pistas</span>
+        <button class="btn ghost sm" id="bExp">${IC.eye} Ver la explicación</button>
+        ${(prev && prev.usoExp) ? '<span class="pill gold">explicación vista</span>' : ''}
+      </div>
+      <div id="pistas"></div>
+      <div id="explicacion"></div>
+      <textarea id="ta" placeholder="Escribí tu respuesta con tus palabras. No hace falta la redacción exacta: lo que importa son las ideas.">${esc(dev.texto)}</textarea>
+      <div class="btnrow" style="margin-top:12px">
+        <button class="btn primary" id="bCorregir">Corregir con rúbrica</button>
+        <button class="btn ghost" id="bSaltar">Otra pregunta</button>
+        <span class="tiny muted" id="wcount" style="margin-left:auto">${(dev.texto||'').trim().split(/\s+/).filter(Boolean).length} palabras</span>
+      </div>
+
+      <div id="esperada"></div>
+    ` : `
+      <div class="card" style="background:#FAFCFE;box-shadow:none;padding:16px 18px">
+        <div class="eyebrow" style="margin-bottom:6px">Tu respuesta</div>
+        <div class="small" style="white-space:pre-wrap">${dev.texto.trim() ? esc(dev.texto) : '<span class="muted">(en blanco)</span>'}</div>
+      </div>
+
+      <div style="margin-top:16px">
+        <div class="qhead" style="margin-bottom:6px">
+          <h4 style="font-size:15px">Palabras clave detectadas</h4>
+          <span class="pill ${nHits>=Math.ceil(q.kb.length*0.6)?'teal':nHits>0?'gold':'red'}">${nHits} de ${q.kb.length}</span>
+        </div>
+        <div class="kbchips">${hits.map(h=>`<span class="kbchip ${h.hit?'hit':''}">${h.hit?'✓ ':''}${esc(h.k)}</span>`).join('')}</div>
+        <p class="tiny muted" style="margin-top:8px">Las palabras clave son una ayuda, no la corrección: podés tener la idea bien con otras palabras.</p>
+      </div>
+
+      <hr class="sep">
+      <h4 style="font-size:15px;margin-bottom:4px">Marcá lo que tu respuesta sí incluye</h4>
+      <p class="tiny muted" style="margin-bottom:2px">Son los criterios con los que corrige el profesor, con su puntaje. Sumá tu total.</p>
+      <div class="rub" id="rub">
+        ${q.rub.map((r,i)=>`<button class="rubitem ${dev.rub[i]?'on':''}" data-i="${i}">
+          <span class="chk">${IC.check}</span><span>${esc(r.t)}</span><span class="pt">${r.p} pts</span></button>`).join('')}
+      </div>
+      <div class="summary" style="margin-top:16px;background:var(--blue-soft);border-radius:12px;padding:14px 16px">
+        <div class="score" id="scoreDev">${dev.rub.reduce((a,b,i)=>a+(b?q.rub[i].p:0),0)}<small>/8</small></div>
+        <div class="small muted" style="flex:1">Autoevaluación sobre la rúbrica oficial</div>
+        <button class="btn teal" id="bGuardar">Guardar resultado</button>
+      </div>
+      <div class="btnrow" style="margin-top:14px">
+        <button class="btn ghost sm" id="bVolver">Editar respuesta</button>
+        <button class="btn ghost sm" id="bCerrar">Ver la respuesta esperada</button>
+        <button class="btn sm" id="bSiguiente">Siguiente pregunta →</button>
+      </div>
+      <div class="hintbar">
+        <button class="btn ghost sm" id="bPista">${IC.bulb} Pedir pista</button>
+        <span class="hintcount" id="hintCount">0 de 3 pistas</span>
+        <button class="btn ghost sm" id="bExp">${IC.eye} Ver la explicación</button>
+      </div>
+      <div id="pistas"></div>
+      <div id="explicacion"></div>
+      <div id="esperada"></div>
+    `}
+  </div>`;
+
+  // pistas acumuladas y explicación (comunes a las dos fases)
+  cablearPistas(zona, q, el);
+
+  if(dev.fase==='escribir'){
+    const ta = zona.querySelector('#ta');
+    ta.addEventListener('input', ()=>{ dev.texto = ta.value;
+      const c = zona.querySelector('#wcount'); if(c) c.textContent = ta.value.trim().split(/\s+/).filter(Boolean).length + ' palabras';
+    });
+    zona.querySelector('#bCorregir').onclick = ()=>{
+      dev.texto = ta.value;
+      if(!dev.texto.trim() && !confirm('Tu respuesta está en blanco. ¿Corregir igual?')) return;
+      dev.fase='evaluar'; dev.rub = q.rub.map(()=>false); pintarDev(el);
+    };
+    const otra = ()=>{ dev.i=Math.floor(Math.random()*dev.lista.length); dev.fase='escribir'; dev.texto=''; dev.rub=[]; dev.expVista=false; dev.hints=0; pintarDev(el); };
+    zona.querySelector('#bSaltar').onclick = otra;
+  } else {
+    zona.querySelectorAll('#rub .rubitem').forEach(b=>b.onclick=()=>{
+      const i = parseInt(b.dataset.i,10);
+      dev.rub[i] = !dev.rub[i];
+      b.classList.toggle('on', dev.rub[i]);
+      zona.querySelector('#scoreDev').innerHTML = dev.rub.reduce((a,v,idx)=>a+(v?q.rub[idx].p:0),0) + '<small>/8</small>';
+    });
+    zona.querySelector('#bVolver').onclick = ()=>{ dev.fase='escribir'; pintarDev(el); };
+    zona.querySelector('#bCerrar').onclick = ()=>mostrarEsperada(zona, q);
+    zona.querySelector('#bGuardar').onclick = ()=>{
+      const pts = dev.rub.reduce((a,v,idx)=>a+(v?q.rub[idx].p:0),0);
+      const s = S.dev[q.id] || {v:0,n:0};
+      s.v=(s.v||0)+1; s.n=(s.n||0)+1; s.pts=pts; s.r = (pts>=5 && !dev.expVista) ? 1 : 0; s.usoExp = !!dev.expVista; s.ultimo=hoy();
+      s.hits = hits.filter(h=>h.hit).length; s.kb = q.kb.length;
+      S.dev[q.id]=s; guardar(); actualizarFoot();
+      toast(`Guardado: ${pts}/8 · ${s.r?'dada por resuelta':(dev.expVista?'con ayuda: sigue en repaso':'queda para repasar')}`);
+      dev.i = Math.min(dev.i+1, dev.lista.length-1);
+      dev.fase='escribir'; dev.texto=''; dev.rub=[]; dev.expVista=false; dev.hints=0;
+      pintarDev(el);
+    };
+    zona.querySelector('#bSiguiente').onclick = ()=>{
+      dev.i = (dev.i+1) % dev.lista.length; dev.fase='escribir'; dev.texto=''; dev.rub=[]; dev.expVista=false; dev.hints=0; pintarDev(el);
+    };
+  }
+}
+
+function cablearPistas(zona, q, el){
+  const caja = zona.querySelector('#pistas');
+  const exp = zona.querySelector('#explicacion');
+  const cont = zona.querySelector('#hintCount');
+  const bp = zona.querySelector('#bPista');
+  const be = zona.querySelector('#bExp');
+  let n = dev.hints||0;
+  const pintar = ()=>{
+    cont.textContent = `${n} de 3 pistas`;
+    bp.disabled = n>=3;
+    bp.style.opacity = n>=3 ? .5 : 1;
+    if(n===0) caja.innerHTML='';
+    else caja.innerHTML = q.h.slice(0,n).map((h,i)=>`
+      <div class="hintitem"><span class="hn">${i+1}</span><span>${esc(h)}</span></div>`).join('');
+  };
+  bp.onclick = ()=>{
+    if(n>=3) return;
+    n++; dev.hints = n; pintar();
+    // la primera pista cuenta como "usó ayuda" para el registro de progreso
+    const s = S.dev[q.id] || (S.dev[q.id]={v:0,n:0}); s.usoPista = Math.max(s.usoPista||0, n);
+    guardar();
+    if(n===3) toast('Esa era la última pista. Si querés, abrí la explicación completa.');
+  };
+  be.onclick = ()=>{
+    if(exp.dataset.abierto){
+      exp.innerHTML=''; delete exp.dataset.abierto;
+      be.innerHTML = IC.eye + ' Ver la explicación';
+      be.classList.remove('on');
+      return;
+    }
+    exp.dataset.abierto='1';
+    exp.innerHTML = `<div class="expbox">
+      <div class="eyebrow" style="margin-bottom:6px">Explicación · cómo se resuelve</div>
+      <p>${esc(q.e)}</p>
+      <div class="expnote">${IC.info}<span>Si mirás la explicación antes de escribir, el ítem no cuenta como dominado: se registra como “con ayuda” y sigue apareciendo en el repaso.</span></div>
+    </div>`;
+    be.innerHTML = IC.eye + ' Ocultar la explicación';
+    be.classList.add('on');
+    dev.expVista = true;
+    const s = S.dev[q.id] || (S.dev[q.id]={v:0,n:0}); s.usoExp = true; guardar();
+  };
+  pintar();
+}
+
+function mostrarEsperada(zona, q){
+  const cont = zona.querySelector('#esperada');
+  if(cont.dataset.abierto){ cont.innerHTML=''; delete cont.dataset.abierto; return; }
+  cont.dataset.abierto='1';
+  cont.innerHTML = `<div class="card" style="margin-top:14px;background:var(--teal-soft);border-color:#BFE3DB;box-shadow:none">
+    <div class="eyebrow" style="color:#1C6C62;margin-bottom:6px">Qué espera el profesor (rúbrica)</div>
+    <ul style="margin:0 0 10px 18px;padding:0;font-size:14px">
+      ${q.rub.map(r=>`<li style="margin-bottom:4px">${esc(r.t)} <span class="tiny muted">(${r.p} pts)</span></li>`).join('')}
+    </ul>
+    <div class="eyebrow" style="color:#1C6C62;margin-bottom:6px">Palabras clave</div>
+    <div class="kbchips" style="margin-top:0">${q.kb.map(k=>`<span class="kbchip">${esc(k)}</span>`).join('')}</div>
+  </div>`;
+}
+
+/* =========================================================
+   VISTA: Simulacro
+   ========================================================= */
+let simEnCurso = null;
+
+function simulacro(el){
+  if(simEnCurso && !simEnCurso.enviado){ pintarSimulacro(el); return; }
+  if(simEnCurso && simEnCurso.enviado){ pintarResultado(el); return; }
+
+  el.innerHTML = `
+  <div class="qhead"><div>
+    <div class="eyebrow">Examen</div>
+    <h1 class="h1">Simulacro</h1>
+    <p class="lead" style="margin-top:6px">15 preguntas de opción múltiple al azar y 5 de desarrollo, con la misma proporción de temas del parcial. Se corrige con la fórmula 4 × correcta − 1 × incorrecta.</p>
+  </div></div>
+
+  <div class="card">
+    <h3 style="font-size:17px;margin-bottom:12px">Configuración</h3>
+    <div class="grid g2">
+      <div>
+        <label class="fld">Tiempo</label>
+        <div class="seg" id="segTiempo">
+          <button data-t="libre" class="on">Libre</button>
+          <button data-t="45">45 min</button>
+          <button data-t="60">60 min</button>
+          <button data-t="90">90 min</button>
+          <button data-t="custom">Otro</button>
+        </div>
+        <div id="customBox" style="display:none;margin-top:10px">
+          <label class="fld" for="minCustom">Minutos</label>
+          <input type="number" id="minCustom" min="5" max="240" value="75" style="width:120px">
+        </div>
+      </div>
+      <div>
+        <label class="fld">Composición</label>
+        <div class="small" style="background:var(--blue-soft);border-radius:11px;padding:11px 14px;color:#2A5C93">
+          <b>Parte I:</b> 15 MCQ · 60 pts<br>
+          <b>Parte II:</b> 5 desarrollo · 40 pts (una por eje)
+        </div>
+      </div>
+    </div>
+    <hr class="sep">
+    <div class="btnrow">
+      <button class="btn primary" id="bEmpezar">Comenzar simulacro</button>
+      <span class="tiny muted">Los temas se sortean respetando la proporción real del banco.</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:16px;margin-bottom:10px">Simulacros anteriores</h3>
+    ${S.examenes.length ? tablaExamenes() : '<div class="empty">Todavía no hiciste ningún simulacro.<br><span class="tiny">Con 3 seguidos en 85+ estás listo.</span></div>'}
+  </div>`;
+
+  let minutos = 'libre';
+  el.querySelectorAll('#segTiempo button').forEach(b=>b.onclick=()=>{
+    el.querySelectorAll('#segTiempo button').forEach(x=>x.classList.toggle('on',x===b));
+    minutos = b.dataset.t;
+    el.querySelector('#customBox').style.display = (minutos==='custom') ? 'block':'none';
+  });
+  el.querySelector('#bEmpezar').onclick = ()=>{
+    let lim = null;
+    if(minutos==='custom') lim = Math.max(5, parseInt(el.querySelector('#minCustom').value||'75',10));
+    else if(minutos!=='libre') lim = parseInt(minutos,10);
+    empezarSimulacro(el, lim);
+  };
+}
+
+function tablaExamenes(){
+  const rows = S.examenes.slice().reverse().slice(0,10).map(e=>`
+    <tr>
+      <td class="small">${new Date(e.fecha).toLocaleDateString('es-UY')} ${new Date(e.fecha).toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'})}</td>
+      <td class="r">${e.parte1}</td><td class="r">${e.parte2}</td>
+      <td class="r strong" style="color:${e.nota>=CORTE_APROBADO?'var(--teal)':'var(--red)'}">${e.nota}</td>
+      <td class="r small muted">${e.segundos?fmtSeg(e.segundos):'—'}</td>
+    </tr>`).join('');
+  return `<table class="tb"><thead><tr><th>Fecha</th><th class="r">Parte I</th><th class="r">Parte II</th><th class="r">Total</th><th class="r">Tiempo</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function elegirConProporcion(cant){
+  // proporción del banco real
+  const total = MCQ.length;
+  const porTema = TEMAS.map(t=>({t, n: MCQ.filter(x=>x.tema===t).length}));
+  const cuotas = porTema.map(o=>({t:o.t, c: Math.max(1, Math.round(cant*o.n/total))}));
+  let suma = cuotas.reduce((a,b)=>a+b.c,0);
+  while(suma>cant){ const i = cuotas.findIndex(x=>x.c>1); if(i<0) break; cuotas[i].c--; suma--; }
+  while(suma<cant){ cuotas[suma%cuotas.length].c++; suma++; }
+  const out = [];
+  cuotas.forEach(c=>{
+    const pool = shuffle(MCQ.filter(x=>x.tema===c.t));
+    out.push(...pool.slice(0,c.c));
+  });
+  return shuffle(out).slice(0,cant);
+}
+
+function guardarSim(){
+  if(!simEnCurso || simEnCurso.enviado){ S.simPendiente = null; guardar(); return; }
+  S.simPendiente = {
+    mcq: simEnCurso.mcq.map(x=>x.id),
+    devs: simEnCurso.devs.map(x=>x.id),
+    respuestas: simEnCurso.respuestas,
+    textos: simEnCurso.textos,
+    inicio: simEnCurso.inicio,
+    limite: simEnCurso.limite,
+    indice: simEnCurso.indice,
+    seccion: simEnCurso.seccion
+  };
+  guardar();
+}
+function restaurarSim(){
+  const p = S.simPendiente;
+  if(!p) return false;
+  const mcq = (p.mcq||[]).map(id=>porId[id]).filter(Boolean);
+  const devs = (p.devs||[]).map(id=>devPorId[id]).filter(Boolean);
+  if(mcq.length!==15 || devs.length!==5) return false;
+  simEnCurso = {mcq, devs, respuestas:p.respuestas||{}, textos:p.textos||{}, rub:{},
+    inicio:p.inicio||Date.now(), limite:p.limite||null, indice:p.indice||0,
+    seccion:p.seccion||'mcq', enviado:false};
+  return true;
+}
+
+function empezarSimulacro(el, limiteMin){
+  const mcq = elegirConProporcion(15);
+  const devs = shuffle(TEMAS).map(t=>{
+    const pool = shuffle(DEV.filter(x=>x.tema===t));
+    return pool[0];
+  }).filter(Boolean).slice(0,5);
+  simEnCurso = {
+    mcq, devs, respuestas:{}, textos:{}, rub:{},
+    inicio: Date.now(), limite: limiteMin ? limiteMin*60*1000 : null,
+    indice:0, seccion:'mcq', enviado:false, avisoMostrado:false
+  };
+  guardarSim();
+  pintarSimulacro(el);
+  iniciarTimer();
+}
+
+let timerH = null;
+function iniciarTimer(){
+  clearInterval(timerH);
+  timerH = setInterval(()=>{
+    if(!simEnCurso || simEnCurso.enviado){ clearInterval(timerH); return; }
+    const el = document.querySelector('#timer');
+    if(!el) return;
+    const trans = Math.floor((Date.now()-simEnCurso.inicio)/1000);
+    if(simEnCurso.limite){
+      const rest = Math.max(0, simEnCurso.limite/1000 - trans);
+      el.textContent = fmtSeg(rest);
+      el.classList.toggle('warn', rest < 300);
+      if(rest<=0){ clearInterval(timerH); enviarSimulacro(true); }
+    } else {
+      el.textContent = fmtSeg(trans);
+      el.classList.remove('warn');
+    }
+  }, 1000);
+}
+
+function pintarSimulacro(el){
+  const s = simEnCurso;
+  const contestadas = Object.keys(s.respuestas).length;
+  const textosHechos = Object.values(s.textos).filter(t=>t && t.trim()).length;
+  const enMcq = s.seccion==='mcq';
+  const q = enMcq ? s.mcq[s.indice] : s.devs[s.indice];
+
+  el.innerHTML = `
+  <div class="qhead">
+    <div>
+      <div class="eyebrow">Simulacro en curso</div>
+      <h1 class="h1" style="font-size:24px">${enMcq?'Parte I · Opción múltiple':'Parte II · Desarrollo'}</h1>
+    </div>
+    <div class="timerbox">${IC.clock}<div><div class="tiny muted" style="line-height:1">${s.limite?'Tiempo restante':'Tiempo'}</div><div class="timer" id="timer">${s.limite?fmtSeg(Math.max(0, s.limite/1000-(Date.now()-s.inicio)/1000)):fmtSeg((Date.now()-s.inicio)/1000)}</div></div></div>
+  </div>
+
+  <div class="steps">
+    <span class="step done"><span class="sn">1</span>Configurar</span>
+    <span class="step on"><span class="sn">2</span>Responder</span>
+    <span class="step"><span class="sn">3</span>Corrección</span>
+  </div>
+
+  <div class="two" style="margin-top:16px">
+    <div>
+      <div class="card">
+        <div class="qhead" style="margin-bottom:6px">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <span class="pill blue">${enMcq?'Pregunta':'Desarrollo'} ${s.indice+1} de ${enMcq?s.mcq.length:s.devs.length}</span>
+            <span class="pill gray">${esc(q.tema)}</span>
+          </div>
+        </div>
+
+        ${enMcq ? `
+          <div class="qtext">${esc(q.q)}</div>
+          <div class="opts">
+            ${q.o.map((o,k)=>{
+              const sel = s.respuestas[q.id]===k;
+              return `<button class="opt ${sel?'pick':''}" data-k="${k}">
+                <span class="k">${'ABCD'[k]}</span><span>${esc(o)}</span></button>`;
+            }).join('')}
+          </div>
+          <p class="tiny muted" style="margin-top:12px">Sin corrección durante el examen. Podés volver a cualquier pregunta antes de entregar.</p>
+        ` : `
+          <div class="devq">${esc(q.q)}</div>
+          <textarea id="taSim" placeholder="Escribí tu respuesta. Se corrige después, contra la rúbrica.">${esc(s.textos[q.id]||'')}</textarea>
+          <p class="tiny muted" style="margin-top:8px">8 puntos · en la corrección vas a ver las palabras clave y la rúbrica.</p>
+        `}
+
+        <hr class="sep">
+        <div class="btnrow">
+          <button class="btn sm" id="prevSim" ${s.indice===0?'disabled':''}>← Anterior</button>
+          <button class="btn sm primary" id="nextSim">Siguiente →</button>
+          <button class="btn sm ghost" id="entregar" style="margin-left:auto">Entregar y corregir</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-mini">
+      <h4>${enMcq?'Opción múltiple':'Desarrollo'}</h4>
+      <div class="dots">
+        ${(enMcq?s.mcq:s.devs).map((x,i)=>{
+          const resp = enMcq ? (s.respuestas[x.id]!==undefined) : !!(s.textos[x.id]&&s.textos[x.id].trim());
+          return `<button class="dotsm ${resp?'ans':''} ${i===s.indice?'cur':''}" data-jump="${i}">${i+1}</button>`;
+        }).join('')}
+      </div>
+      <hr class="sep" style="margin:14px 0">
+      <div class="small" style="display:flex;justify-content:space-between"><span class="muted">MCQ contestadas</span><b>${contestadas}/15</b></div>
+      <div class="small" style="display:flex;justify-content:space-between;margin-top:6px"><span class="muted">Desarrollo escritas</span><b>${textosHechos}/5</b></div>
+      <hr class="sep" style="margin:14px 0">
+      <div class="seg" style="width:100%">
+        <button data-sec="mcq" class="${enMcq?'on':''}" style="flex:1">Parte I</button>
+        <button data-sec="dev" class="${!enMcq?'on':''}" style="flex:1">Parte II</button>
+      </div>
+    </div>
+  </div>`;
+
+  el.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{
+    s.respuestas[q.id] = parseInt(b.dataset.k,10);
+    guardarSim();
+    pintarSimulacro(el);
+  });
+  const ta = el.querySelector('#taSim');
+  if(ta){
+    ta.addEventListener('input', ()=>{ s.textos[q.id] = ta.value; });
+    ta.addEventListener('blur', guardarSim);
+  }
+  el.querySelector('#prevSim').onclick = ()=>{ if(s.indice>0){ s.indice--; pintarSimulacro(el);} };
+  el.querySelector('#nextSim').onclick = ()=>{
+    const arr = enMcq?s.mcq:s.devs;
+    if(s.indice+1>=arr.length){
+      if(enMcq){ s.seccion='dev'; s.indice=0; }
+      else { toast('Es la última: podés entregar cuando quieras'); }
+    } else s.indice++;
+    pintarSimulacro(el);
+  };
+  el.querySelector('#entregar').onclick = ()=>{
+    const faltan = 15-contestadas;
+    if(faltan>0 && !confirm(`Te quedan ${faltan} preguntas de opción múltiple sin responder. Las que dejes en blanco no suman ni restan. ¿Entregar igual?`)) return;
+    enviarSimulacro(false);
+  };
+  el.querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>{ s.indice=parseInt(b.dataset.jump,10); pintarSimulacro(el); });
+  el.querySelectorAll('[data-sec]').forEach(b=>b.onclick=()=>{ s.seccion=b.dataset.sec; s.indice=0; pintarSimulacro(el); });
+  iniciarTimer();
+}
+
+function enviarSimulacro(porTiempo){
+  const s = simEnCurso; if(!s || s.enviado) return;
+  s.enviado = true; s.segundos = Math.floor((Date.now()-s.inicio)/1000);
+  S.simPendiente = null;
+  s.porTiempo = !!porTiempo;
+  const el = document.getElementById('app');
+
+  // Parte I
+  let ok=0, mal=0, blanco=0;
+  s.mcq.forEach(q=>{
+    const r = s.respuestas[q.id];
+    if(r===undefined) blanco++;
+    else if(r===q.ok) ok++;
+    else mal++;
+    const st = S.mcq[q.id] || {v:0,n:0,freq:1};
+    st.v=(st.v||0)+1; st.n=(st.n||0)+1; st.r = (r===q.ok)?1:0; st.ultimo=hoy();
+    if(!st.freq) st.freq=1;
+    S.mcq[q.id]=st;
+  });
+  const p1raw = Math.max(0, ok*4 - mal*1);
+  const p1 = Math.min(60, p1raw);
+
+  // conteo por tema en MCQ
+  const temas = {};
+  s.mcq.forEach(q=>{
+    temas[q.tema] = temas[q.tema] || {ok:0,tot:0};
+    temas[q.tema].tot++;
+    if(s.respuestas[q.id]===q.ok) temas[q.tema].ok++;
+  });
+  s.temas = temas;
+  s.parte1 = p1; s.ok=ok; s.mal=mal; s.blanco=blanco;
+  s.parte2 = null;
+  S.examenes.push({fecha:new Date().toISOString(), nota:p1, parte1:p1, parte2:0,
+                   temas, segundos:s.segundos, limite:s.limite});
+  guardar();
+  pintarCorreccionDev(el);
+}
+
+function pintarCorreccionDev(el){
+  const s = simEnCurso;
+  const plan = s.devs;
+  el.innerHTML = `
+  <div class="qhead"><div>
+    <div class="eyebrow">Corrección · Parte II</div>
+    <h1 class="h1" style="font-size:24px">Autoevaluá tus 5 respuestas</h1>
+    <p class="lead" style="margin-top:6px">Para cada desarrollo vas a ver lo que escribiste, las palabras clave que detectó la app y la rúbrica del profesor. Marcá los criterios que tu respuesta sí cumple.</p>
+  </div></div>
+  <div class="steps">
+    <span class="step done"><span class="sn">1</span>Configurar</span>
+    <span class="step done"><span class="sn">2</span>Responder</span>
+    <span class="step on"><span class="sn">3</span>Corrección</span>
+  </div>
+  <div id="devCorr" style="margin-top:16px">
+    ${plan.map((q,i)=>{
+      const hits = detectar(s.textos[q.id]||'', q.kb);
+      const nH = hits.filter(h=>h.hit).length;
+      return `
+      <div class="card" style="margin-top:14px" data-dev="${i}">
+        <div class="qhead" style="margin-bottom:6px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="pill blue">Desarrollo ${i+1}</span><span class="pill gray">${esc(q.tema)}</span></div>
+          <span class="pill ${nH>=Math.ceil(q.kb.length*0.6)?'teal':nH>0?'gold':'red'}">${nH}/${q.kb.length} palabras clave</span>
+        </div>
+        <div class="devq" style="font-size:16px">${esc(q.q)}</div>
+        <div style="background:#FAFCFE;border:1px solid var(--line);border-radius:12px;padding:13px 15px;font-size:14px;white-space:pre-wrap">${(s.textos[q.id]||'').trim()?esc(s.textos[q.id]):'<span class="muted">(en blanco)</span>'}</div>
+        <div class="kbchips">${hits.map(h=>`<span class="kbchip ${h.hit?'hit':''}">${h.hit?'✓ ':''}${esc(h.k)}</span>`).join('')}</div>
+        <div class="rub" data-rub="${i}">
+          ${q.rub.map((r,j)=>`<button class="rubitem" data-i="${i}" data-j="${j}">
+            <span class="chk">${IC.check}</span><span>${esc(r.t)}</span><span class="pt">${r.p} pts</span></button>`).join('')}
+        </div>
+        <div class="summary" style="margin-top:12px">
+          <div class="score" data-score="${i}">0<small>/8</small></div>
+          <div class="small muted" style="flex:1">Sumá los criterios que cumpliste</div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>
+  <div class="card" style="margin-top:16px">
+    <div class="btnrow">
+      <button class="btn teal" id="bFinal">Ver resultado final</button>
+      <span class="tiny muted">Podés ajustar las marcas antes de cerrar.</span>
+    </div>
+  </div>`;
+
+  el.querySelectorAll('.rubitem').forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i, j=+b.dataset.j;
+    s.rub[i] = s.rub[i] || [];
+    s.rub[i][j] = !s.rub[i][j];
+    b.classList.toggle('on', s.rub[i][j]);
+    const q = s.devs[i];
+    const pts = q.rub.reduce((a,r,jj)=>a+(s.rub[i][jj]?r.p:0),0);
+    el.querySelector(`[data-score="${i}"]`).innerHTML = pts+'<small>/8</small>';
+  });
+  el.querySelector('#bFinal').onclick = ()=>cerrarSimulacro(el);
+}
+
+function cerrarSimulacro(el){
+  const s = simEnCurso;
+  let p2 = 0;
+  s.devs.forEach((q,i)=>{
+    const marks = s.rub[i]||[];
+    const pts = q.rub.reduce((a,r,j)=>a+(marks[j]?r.p:0),0);
+    p2 += pts;
+    const st = S.dev[q.id] || {v:0,n:0};
+    st.v=(st.v||0)+1; st.n=(st.n||0)+1; st.pts=pts; st.r = pts>=5?1:0; st.ultimo=hoy();
+    S.dev[q.id]=st;
+    s.devRes = s.devRes || {}; s.devRes[i] = pts;
+  });
+  s.parte2 = p2;
+  const nota = s.parte1 + p2;
+  s.nota = nota;
+  const temas = Object.assign({}, s.temas);
+  s.devs.forEach((q,i)=>{
+    temas[q.tema] = temas[q.tema] || {ok:0,tot:0};
+    temas[q.tema].tot++;
+    if((s.devRes[i]||0) >= 4) temas[q.tema].ok++;
+  });
+  s.temasFinal = temas;
+  const ult = S.examenes[S.examenes.length-1];
+  if(ult){ ult.parte2 = p2; ult.nota = nota; ult.temas = temas; }
+  guardar(); actualizarFoot();
+  pintarResultado(el);
+}
+
+function pintarResultado(el){
+  const s = simEnCurso;
+  const nota = s.nota || 0;
+  const temas = s.temasFinal || s.temas || {};
+  const ordenados = Object.entries(temas).map(([t,v])=>({t, p:pct(v.ok,v.tot), ok:v.ok, tot:v.tot}))
+                    .sort((a,b)=>a.p-b.p);
+  const flojos = ordenados.filter(x=>x.p<60);
+  const fuerte = ordenados.filter(x=>x.p>=80);
+  const color = nota>=85?'var(--teal)':nota>=CORTE_APROBADO?'var(--blue)':'var(--red)';
+
+  el.innerHTML = `
+  <div class="qhead"><div>
+    <div class="eyebrow">Resultado</div>
+    <h1 class="h1">${nota>=85?'Muy bien encaminado':nota>=CORTE_APROBADO?'Aprobado, todavía hay margen':'A reforzar'}</h1>
+    <p class="lead" style="margin-top:6px">${s.porTiempo?'Se terminó el tiempo y el simulacro se entregó automáticamente. ':''}Este resultado ya quedó guardado en tu historial y actualizó el estado de cada pregunta.</p>
+  </div></div>
+
+  <div class="steps">
+    <span class="step done"><span class="sn">1</span>Configurar</span>
+    <span class="step done"><span class="sn">2</span>Responder</span>
+    <span class="step done"><span class="sn">3</span>Corrección</span>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="row" style="align-items:center;gap:26px">
+      <div>
+        <div class="score" style="font-size:56px;color:${color}">${nota}<small>/100</small></div>
+        <div class="small muted" style="margin-top:2px">Nota del simulacro</div>
+      </div>
+      <div style="flex:1;min-width:240px">
+        <div class="grid g3">
+          <div><div class="tiny muted">Parte I</div><div style="font-size:20px;font-weight:700">${s.parte1}<span class="tiny muted">/60</span></div>
+            <div class="tiny muted">${s.ok} bien · ${s.mal} mal · ${s.blanco} en blanco</div></div>
+          <div><div class="tiny muted">Parte II</div><div style="font-size:20px;font-weight:700">${s.parte2}<span class="tiny muted">/40</span></div>
+            <div class="tiny muted">autoevaluada con rúbrica</div></div>
+          <div><div class="tiny muted">Tiempo</div><div style="font-size:20px;font-weight:700">${fmtSeg(s.segundos||0)}</div>
+            <div class="tiny muted">${s.limite?'límite '+Math.round(s.limite/60000)+' min':'tiempo libre'}</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:16px;margin-bottom:4px">Qué reforzar</h3>
+    <p class="small muted" style="margin-bottom:12px">Ordenado de más flojo a más fuerte. Incluye opción múltiple y desarrollo.</p>
+    <div class="heat">
+      ${ordenados.map(o=>`
+        <div class="heatrow">
+          <div class="small" style="font-weight:600">${esc(o.t)}</div>
+          <div class="heattrack"><i style="width:${o.p}%;background:${o.p>=80?'#268579':o.p>=60?'#3673B9':'#C6645C'}"></i></div>
+          <div class="tiny muted" style="text-align:right">${o.ok}/${o.tot}</div>
+        </div>`).join('')}
+    </div>
+    <hr class="sep">
+    ${flojos.length ? `<div class="small" style="background:var(--red-soft);border-radius:11px;padding:12px 14px;color:#8E423C">
+        <b>Prioridad alta:</b> ${flojos.map(f=>esc(f.t)).join(' · ')}.</div>`
+      : `<div class="small" style="background:var(--teal-soft);border-radius:11px;padding:12px 14px;color:#1C6C62">
+        <b>Sin temas flojos.</b> ${fuerte.length===ordenados.length?'Todos por encima del 80%: estás listo.':'Ningún tema por debajo del 60%.'}</div>`}
+    <hr class="sep">
+    <h4 style="font-size:14px;margin-bottom:8px">Revisión de la Parte I</h4>
+    <table class="tb">
+      <thead><tr><th>#</th><th>Pregunta</th><th>Tema</th><th class="r">Tu respuesta</th><th class="r">Correcta</th></tr></thead>
+      <tbody>
+        ${s.mcq.map((q,i)=>{
+          const r = s.respuestas[q.id];
+          const bien = r===q.ok;
+          return `<tr>
+            <td class="tiny muted">${i+1}</td>
+            <td class="small">${esc(q.q.length>78?q.q.slice(0,78)+'…':q.q)}</td>
+            <td class="tiny muted">${esc(q.tema)}</td>
+            <td class="r"><span class="pill ${r===undefined?'gray':bien?'teal':'red'}">${r===undefined?'—':'ABCD'[r]}</span></td>
+            <td class="r"><span class="pill teal">${'ABCD'[q.ok]}</span></td>
+          </tr>`;}).join('')}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="btnrow">
+      <button class="btn primary" id="bOtro">Hacer otro simulacro</button>
+      <button class="btn" id="bRepasar">Repasar los temas flojos</button>
+      <button class="btn ghost" id="bProg">Ver progreso</button>
+    </div>
+  </div>`;
+
+  el.querySelector('#bOtro').onclick = ()=>{ simEnCurso=null; S.simPendiente=null; guardar(); simulacro(el); };
+  el.querySelector('#bProg').onclick = ()=>ir('progreso');
+  el.querySelector('#bRepasar').onclick = ()=>{
+    simEnCurso = null;
+    prac.tema = flojos.length ? flojos[0].t : 'todos';
+    prac.estado = 'pendientes'; prac.lista=[]; prac.i=0; prac.revelado=false; prac.pick=null;
+    ir('multiple');
+  };
+}
+
+/* =========================================================
+   VISTA: Progreso
+   ========================================================= */
+function progreso(el){
+  const t = totales();
+  const temas = dominioPorTema();
+  const examenes = S.examenes.slice().reverse();
+  const falladas = MCQ.filter(x=>estadoMcq(x.id)==='fallada');
+  const devPend = DEV.filter(x=>!S.dev[x.id] || S.dev[x.id].r!==1);
+
+  const listo = (t.dom/pct(1,1)) && (pct(t.dom,MCQ.length)>=85) && temas.every(x=>pct(x.ok,x.mcq)>=60) && t.examenes>=3 && t.mejor>=85;
+  const chequeos = [
+    {ok: pct(t.dom,MCQ.length)>=85, txt:`Al menos 85% del banco MCQ dominado (${pct(t.dom,MCQ.length)}%)`},
+    {ok: temas.every(x=>pct(x.ok,x.mcq)>=60), txt:'Todos los temas con 60% o más'},
+    {ok: t.examenes>=3, txt:`Tres simulacros completos (${t.examenes})`},
+    {ok: t.mejor>=85, txt:`Mejor nota 85 o más (${t.mejor||0})`},
+    {ok: pct(t.domd, DEV.length)>=60, txt:`Desarrollo: 60% resueltas (${pct(t.domd,DEV.length)}%)`}
+  ];
+
+  el.innerHTML = `
+  <div class="qhead"><div>
+    <div class="eyebrow">Panel</div>
+    <h1 class="h1">Progreso</h1>
+    <p class="lead" style="margin-top:6px">Todo se guarda en este navegador. Si cambiás de equipo, exportá el progreso y volvé a importarlo.</p>
+  </div>
+  <div class="btnrow">
+    <button class="btn sm" id="bExport">Exportar</button>
+    <button class="btn sm" id="bImport">Importar</button>
+    <button class="btn sm danger" id="bReset">Reiniciar</button>
+  </div></div>
+
+  <div class="statgrid">
+    <div class="stat blue"><div class="n">${t.dom}<span class="tiny muted">/${MCQ.length}</span></div><div class="l">MCQ dominadas</div></div>
+    <div class="stat"><div class="n">${falladas.length}</div><div class="l">MCQ falladas (para repasar)</div></div>
+    <div class="stat teal"><div class="n">${t.domd}<span class="tiny muted">/${DEV.length}</span></div><div class="l">desarrollo resueltas</div></div>
+    <div class="stat gold"><div class="n">${t.mejor||'—'}</div><div class="l">mejor nota${t.examenes?` · prom ${t.prom}`:''}</div></div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:16px;margin-bottom:10px">Dominio por tema</h3>
+    <div class="heat">
+      ${temas.map(d=>{
+        const p = pct(d.ok,d.mcq);
+        return `<div class="heatrow">
+          <div>
+            <div class="small" style="font-weight:600">${esc(d.tema)}</div>
+            <div class="tiny muted">${d.ok}/${d.mcq} MCQ · ${d.devOk}/${d.dev} desarrollo</div>
+          </div>
+          <div class="heattrack"><i style="width:${p}%;background:${p>=70?'#268579':p>=40?'#3673B9':'#C18A36'}"></i></div>
+          <div class="tiny" style="text-align:right;font-weight:700;color:${p>=70?'var(--teal)':p>=40?'var(--blue)':'var(--gold)'}">${p}%</div>
+        </div>`;}).join('')}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="font-size:16px;margin-bottom:10px">¿Estás listo?</h3>
+    <div class="grid" style="gap:8px">
+      ${chequeos.map(c=>`<div class="small" style="display:flex;gap:10px;align-items:center">
+        <span class="chk" style="background:${c.ok?'var(--teal)':'#fff'};border-color:${c.ok?'var(--teal)':'#C3D0DE'}">${c.ok?IC.check:''}</span>
+        <span style="color:${c.ok?'var(--ink)':'var(--muted)'}">${c.txt}</span></div>`).join('')}
+    </div>
+    <hr class="sep">
+    ${listo ? '<div class="small" style="background:var(--teal-soft);border-radius:11px;padding:12px 14px;color:#1C6C62"><b>Sí:</b> con estos números el parcial está cubierto. Seguí con un simulacro cada dos días para mantener el ritmo.</div>'
+      : '<div class="small" style="background:var(--gold-soft);border-radius:11px;padding:12px 14px;color:#8F6522"><b>Todavía no.</b> Cumplí los puntos de arriba; los que faltan son tu plan de estudio de acá al parcial.</div>'}
+  </div>
+
+  <div class="card">
+    <div class="qhead" style="margin-bottom:8px"><h3 style="font-size:16px">Historial de simulacros</h3>
+      ${t.examenes?`<span class="pill blue">${t.examenes} intento(s)</span>`:''}</div>
+    ${t.examenes ? tablaExamenes() : '<div class="empty">Sin simulacros todavía.</div>'}
+  </div>
+
+  <div class="card">
+    <div class="qhead" style="margin-bottom:8px"><h3 style="font-size:16px">Para repasar</h3></div>
+    <div class="grid g2">
+      <div>
+        <div class="small" style="font-weight:600;margin-bottom:6px">MCQ falladas (${falladas.length})</div>
+        ${falladas.length ? `<div class="qlist">${falladas.slice(0,8).map(x=>`<div class="qrow" style="cursor:default"><span class="num">!</span><span class="qt">${esc(x.q)}</span></div>`).join('')}</div>
+          ${falladas.length>8?`<p class="tiny muted" style="margin-top:8px">y ${falladas.length-8} más…</p>`:''}`
+          : '<div class="empty" style="padding:16px">Ninguna fallada.</div>'}
+      </div>
+      <div>
+        <div class="small" style="font-weight:600;margin-bottom:6px">Desarrollo pendiente (${devPend.length})</div>
+        ${devPend.length ? `<div class="qlist">${devPend.slice(0,6).map(x=>`<div class="qrow" style="cursor:default"><span class="num">·</span><span class="qt">${esc(x.q.slice(0,110))}${x.q.length>110?'…':''}</span></div>`).join('')}</div>`
+          : '<div class="empty" style="padding:16px">Todo el desarrollo resuelto.</div>'}
+      </div>
+    </div>
+  </div>`;
+
+  el.querySelector('#bExport').onclick = ()=>{
+    const blob = new Blob([JSON.stringify(S,null,1)],{type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `progreso-so-${hoy()}.json`; a.click();
+    toast('Progreso exportado');
+  };
+  el.querySelector('#bImport').onclick = ()=>{
+    const inp = document.createElement('input'); inp.type='file'; inp.accept='.json,.txt,application/json';
+    inp.style.cssText='position:fixed;left:-9999px;top:0';
+    document.body.appendChild(inp);
+    inp.onchange = ()=>{
+      const f = inp.files[0]; if(!f) return;
+      const r = new FileReader();
+      r.onload = ()=>{
+        try{
+          const d = JSON.parse(r.result);
+          if(!d.mcq || !d.dev) throw 0;
+          S = Object.assign(estadoInicial(), d); S.simPendiente = d.simPendiente || null;
+          guardar();
+          if(restaurarSim()) toast('Progreso importado · simulacro en curso restaurado');
+          else toast('Progreso importado');
+          ir('progreso');
+        }catch(e){ toast('El archivo no es un progreso válido'); }
+      };
+      r.readAsText(f);
+    };
+    inp.click();
+    setTimeout(()=>{ if(inp.parentNode) inp.remove(); }, 60000);
+  };
+  el.querySelector('#bReset').onclick = ()=>{
+    if(!confirm('Se borra todo el progreso guardado en este navegador. ¿Seguir?')) return;
+    S = estadoInicial(); guardar(); toast('Progreso reiniciado'); ir('inicio');
+  };
+}
+
+/* =========================================================
+   Atajos de teclado
+   ========================================================= */
+document.addEventListener('keydown', e=>{
+  if(e.target.matches('textarea, input, select')) return;
+  if(vista==='multiple'){
+    if(['1','2','3','4'].includes(e.key)){ const b=document.querySelector(`#opts .opt[data-k="${+e.key-1}"]`); if(b&&!b.disabled) b.click(); }
+    if(e.key==='ArrowRight'){ const b=document.getElementById('next'); if(b) b.click(); }
+    if(e.key==='ArrowLeft'){ const b=document.getElementById('prev'); if(b&&!b.disabled) b.click(); }
+  }
+  if(vista==='simulacro' && simEnCurso && !simEnCurso.enviado){
+    if(['1','2','3','4'].includes(e.key)){ const b=document.querySelector(`.opt[data-k="${+e.key-1}"]`); if(b) b.click(); }
+    if(e.key==='ArrowRight'){ const b=document.getElementById('nextSim'); if(b) b.click(); }
+    if(e.key==='ArrowLeft'){ const b=document.getElementById('prevSim'); if(b&&!b.disabled) b.click(); }
+  }
+});
+
+/* arranque */
+if(restaurarSim()){
+  setTimeout(()=>toast('Se retomó el simulacro que tenías en curso'), 500);
+}
+ir('inicio');
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a5f9d8e0c969d7ef',t:'MTc5NTUzODMzOQ=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a5f9d8e0c969d7ef',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>
