@@ -391,8 +391,8 @@ table.tb tr:last-child td{border-bottom:0}
     </nav>
     <div class="foot">
       <span class="dot-live"></span><b id="footEstado">Todo guardado local</b><br>
-      <span id="footDetalle">200 MCQ · 100 desarrollo</span><br>
-      <span id="footProg">0/200 dominadas</span>
+      <span id="footDetalle">cargando banco…</span><br>
+      <span id="footProg">0 dominadas</span>
     </div>
   </aside>
 
@@ -407,8 +407,16 @@ table.tb tr:last-child td{border-bottom:0}
    ========================================================= */
 const LS = 'prep-so-v1';
 const BANCO = window.BANCO;
-const TEMAS = BANCO.temas;
+const TEMAS = (BANCO.temas && BANCO.temas.length) ? BANCO.temas : ['General'];
 const CORTE_APROBADO = 60;
+
+/* La app se adapta al tamaño del banco que reciba:
+   si hay pocas preguntas, el simulacro es más corto y la nota se escala a 100. */
+const MCQSIM = Math.max(1, Math.min(15, BANCO.mcq.length));
+const DEVESIM = Math.max(1, Math.min(5, BANCO.dev.length));
+const ESCALA = 15 / MCQSIM;                         // factor para llevar la Parte I a 60
+const PTSDEV = DEVESIM ? Math.round(40 / DEVESIM) : 0;
+const MAXDEV = PTSDEV * DEVESIM;                    // Parte II sobre 40 (o menos, redondeada)
 
 const estadoInicial = () => ({
   mcq:{},        // id -> {v, r, n, freq, ultimo}
@@ -497,6 +505,8 @@ function ir(v, params){
   actualizarFoot();
 }
 function actualizarFoot(){
+  const fd = document.getElementById('footDetalle');
+  if(fd) fd.textContent = `${MCQ.length} MCQ · ${DEV.length} desarrollo`;
   const f = document.getElementById('footProg');
   const t = totales();
   if(f) f.textContent = `${t.dom}/${MCQ.length} dominadas · ${S.examenes.length} simulacro(s)`;
@@ -543,7 +553,7 @@ function inicio(el){
     </svg>
     <div class="eyebrow">Temas 4 y 5 · Laboratorio de Kubernetes</div>
     <h1>Llegá al parcial con el banco de preguntas en la cabeza</h1>
-    <p>Practicá opción múltiple con corrección inmediata y frecuencia ajustable, resolvé desarrollo contra la rúbrica real del profesor y medí tus fuerzas con simulacros de 15 + 5 preguntas.</p>
+    <p>Practicá opción múltiple con corrección inmediata y frecuencia ajustable, resolvé desarrollo contra la rúbrica real del profesor y medí tus fuerzas con simulacros de ${MCQSIM} + ${DEVESIM} preguntas.</p>
     <div class="btnrow">
       <button class="btn primary" data-go="multiple">Empezar a practicar</button>
       <button class="btn ghost" data-go="simulacro">Hacer un simulacro</button>
@@ -560,7 +570,7 @@ function inicio(el){
   <div class="card" style="margin-top:16px">
     <div class="qhead"><div>
       <div class="eyebrow">Cómo está armado el parcial</div>
-      <h3 style="font-size:18px">Parte I: 15 opción múltiple · Parte II: 5 desarrollo · 100 puntos</h3>
+      <h3 style="font-size:18px">Parte I: ${MCQSIM} opción múltiple · Parte II: ${DEVESIM} desarrollo · 100 puntos</h3>
     </div>
     <span class="pill gold">4 × correcta − 1 × incorrecta</span></div>
     <div class="grid g3" style="margin-top:6px">
@@ -569,7 +579,7 @@ function inicio(el){
       <div class="feature t"><div class="ficon">${IC.pen}</div><div>
         <h4>Desarrollo</h4><p>Escribís con tus palabras; la app detecta las palabras clave y te muestra los criterios de corrección reales para que te autoevalúes.</p></div></div>
       <div class="feature g"><div class="ficon">${IC.clock}</div><div>
-        <h4>Simulacro</h4><p>15 MCQ al azar + 5 de desarrollo, con tiempo libre o límite a elección. Al final, temas a reforzar.</p></div></div>
+        <h4>Simulacro</h4><p>${MCQSIM} MCQ al azar + ${DEVESIM} de desarrollo, con tiempo libre o límite a elección. Al final, temas a reforzar.</p></div></div>
     </div>
   </div>
 
@@ -1088,7 +1098,7 @@ function simulacro(el){
   <div class="qhead"><div>
     <div class="eyebrow">Examen</div>
     <h1 class="h1">Simulacro</h1>
-    <p class="lead" style="margin-top:6px">15 preguntas de opción múltiple al azar y 5 de desarrollo, con la misma proporción de temas del parcial. Se corrige con la fórmula 4 × correcta − 1 × incorrecta.</p>
+    <p class="lead" style="margin-top:6px">${MCQSIM} preguntas de opción múltiple al azar y ${DEVESIM} de desarrollo, con la misma proporción de temas del parcial. Se corrige con la fórmula 4 × correcta − 1 × incorrecta.</p>
   </div></div>
 
   <div class="card">
@@ -1111,8 +1121,8 @@ function simulacro(el){
       <div>
         <label class="fld">Composición</label>
         <div class="small" style="background:var(--blue-soft);border-radius:11px;padding:11px 14px;color:#2A5C93">
-          <b>Parte I:</b> 15 MCQ · 60 pts<br>
-          <b>Parte II:</b> 5 desarrollo · 40 pts (una por eje)
+          <b>Parte I:</b> ${MCQSIM} MCQ · 60 pts${MCQSIM<15?' <span class="tiny">(escalado)</span>':''}<br>
+          <b>Parte II:</b> ${DEVESIM} desarrollo · 40 pts${DEVESIM<5?' <span class="tiny">(escalado)</span>':''}
         </div>
       </div>
     </div>
@@ -1154,13 +1164,21 @@ function tablaExamenes(){
 }
 
 function elegirConProporcion(cant){
-  // proporción del banco real
-  const total = MCQ.length;
-  const porTema = TEMAS.map(t=>({t, n: MCQ.filter(x=>x.tema===t).length}));
-  const cuotas = porTema.map(o=>({t:o.t, c: Math.max(1, Math.round(cant*o.n/total))}));
+  // proporción del banco real, sin pedir más preguntas de las que hay
+  const total = MCQ.length || 1;
+  const porTema = TEMAS.map(t=>({t, n: MCQ.filter(x=>x.tema===t).length})).filter(o=>o.n>0);
+  if(!porTema.length) return [];
+  cant = Math.min(cant, MCQ.length);
+  const cuotas = porTema.map(o=>({t:o.t, n:o.n, c: Math.max(1, Math.round(cant*o.n/total))}));
+  cuotas.forEach(c=>{ c.c = Math.min(c.c, c.n); });
   let suma = cuotas.reduce((a,b)=>a+b.c,0);
   while(suma>cant){ const i = cuotas.findIndex(x=>x.c>1); if(i<0) break; cuotas[i].c--; suma--; }
-  while(suma<cant){ cuotas[suma%cuotas.length].c++; suma++; }
+  while(suma<cant){
+    // repartir lo que falta entre los temas que todavía tienen preguntas sin usar
+    const i = cuotas.findIndex(x=>x.c < x.n);
+    if(i<0) break;
+    cuotas[i].c++; suma++;
+  }
   const out = [];
   cuotas.forEach(c=>{
     const pool = shuffle(MCQ.filter(x=>x.tema===c.t));
@@ -1188,7 +1206,7 @@ function restaurarSim(){
   if(!p) return false;
   const mcq = (p.mcq||[]).map(id=>porId[id]).filter(Boolean);
   const devs = (p.devs||[]).map(id=>devPorId[id]).filter(Boolean);
-  if(mcq.length!==15 || devs.length!==5) return false;
+  if(!mcq.length || mcq.length!==(p.mcq||[]).length || devs.length!==(p.devs||[]).length) return false;
   simEnCurso = {mcq, devs, respuestas:p.respuestas||{}, textos:p.textos||{}, rub:{},
     inicio:p.inicio||Date.now(), limite:p.limite||null, indice:p.indice||0,
     seccion:p.seccion||'mcq', enviado:false};
@@ -1196,11 +1214,20 @@ function restaurarSim(){
 }
 
 function empezarSimulacro(el, limiteMin){
-  const mcq = elegirConProporcion(15);
-  const devs = shuffle(TEMAS).map(t=>{
+  if(!MCQ.length || !DEV.length){
+    toast(MCQ.length ? 'Este banco no tiene preguntas de desarrollo cargadas' : 'Este banco no tiene preguntas cargadas');
+    return;
+  }
+  const mcq = elegirConProporcion(MCQSIM);
+  let devs = shuffle(TEMAS).map(t=>{
     const pool = shuffle(DEV.filter(x=>x.tema===t));
     return pool[0];
-  }).filter(Boolean).slice(0,5);
+  }).filter(Boolean).slice(0, DEVESIM);
+  if(devs.length < DEVESIM){
+    // si no hay preguntas en temas distintos, completar con las que sobren
+    const ya = new Set(devs.map(d=>d.id));
+    devs = devs.concat(shuffle(DEV.filter(d=>!ya.has(d.id))).slice(0, DEVESIM-devs.length));
+  }
   simEnCurso = {
     mcq, devs, respuestas:{}, textos:{}, rub:{},
     inicio: Date.now(), limite: limiteMin ? limiteMin*60*1000 : null,
@@ -1297,8 +1324,8 @@ function pintarSimulacro(el){
         }).join('')}
       </div>
       <hr class="sep" style="margin:14px 0">
-      <div class="small" style="display:flex;justify-content:space-between"><span class="muted">MCQ contestadas</span><b>${contestadas}/15</b></div>
-      <div class="small" style="display:flex;justify-content:space-between;margin-top:6px"><span class="muted">Desarrollo escritas</span><b>${textosHechos}/5</b></div>
+      <div class="small" style="display:flex;justify-content:space-between"><span class="muted">MCQ contestadas</span><b>${contestadas}/${s.mcq.length}</b></div>
+      <div class="small" style="display:flex;justify-content:space-between;margin-top:6px"><span class="muted">Desarrollo escritas</span><b>${textosHechos}/${s.devs.length}</b></div>
       <hr class="sep" style="margin:14px 0">
       <div class="seg" style="width:100%">
         <button data-sec="mcq" class="${enMcq?'on':''}" style="flex:1">Parte I</button>
@@ -1327,7 +1354,7 @@ function pintarSimulacro(el){
     pintarSimulacro(el);
   };
   el.querySelector('#entregar').onclick = ()=>{
-    const faltan = 15-contestadas;
+    const faltan = s.mcq.length-contestadas;
     if(faltan>0 && !confirm(`Te quedan ${faltan} preguntas de opción múltiple sin responder. Las que dejes en blanco no suman ni restan. ¿Entregar igual?`)) return;
     enviarSimulacro(false);
   };
@@ -1355,8 +1382,10 @@ function enviarSimulacro(porTiempo){
     if(!st.freq) st.freq=1;
     S.mcq[q.id]=st;
   });
+  // con menos preguntas, cada una vale proporcionalmente más: la Parte I se escala a 60
   const p1raw = Math.max(0, ok*4 - mal*1);
-  const p1 = Math.min(60, p1raw);
+  const p1 = Math.min(60, Math.round(p1raw * ESCALA));
+  const simEscalado = MCQSIM < 15;
 
   // conteo por tema en MCQ
   const temas = {};
@@ -1380,7 +1409,7 @@ function pintarCorreccionDev(el){
   el.innerHTML = `
   <div class="qhead"><div>
     <div class="eyebrow">Corrección · Parte II</div>
-    <h1 class="h1" style="font-size:24px">Autoevaluá tus 5 respuestas</h1>
+    <h1 class="h1" style="font-size:24px">Autoevaluá tus ${plan.length} ${plan.length===1?'respuesta':'respuestas'}</h1>
     <p class="lead" style="margin-top:6px">Para cada desarrollo vas a ver lo que escribiste, las palabras clave que detectó la app y la rúbrica del profesor. Marcá los criterios que tu respuesta sí cumple.</p>
   </div></div>
   <div class="steps">
@@ -1443,8 +1472,10 @@ function cerrarSimulacro(el){
     S.dev[q.id]=st;
     s.devRes = s.devRes || {}; s.devRes[i] = pts;
   });
-  s.parte2 = p2;
-  const nota = s.parte1 + p2;
+  // la rúbrica de cada desarrollo siempre suma 8; con menos de 5 se escala la Parte II a 40
+  s.parte2raw = p2;
+  s.parte2 = DEVESIM ? Math.min(40, Math.round(p2 * 5 / DEVESIM)) : 0;
+  const nota = s.parte1 + s.parte2;
   s.nota = nota;
   const temas = Object.assign({}, s.temas);
   s.devs.forEach((q,i)=>{
@@ -1491,9 +1522,9 @@ function pintarResultado(el){
       <div style="flex:1;min-width:240px">
         <div class="grid g3">
           <div><div class="tiny muted">Parte I</div><div style="font-size:20px;font-weight:700">${s.parte1}<span class="tiny muted">/60</span></div>
-            <div class="tiny muted">${s.ok} bien · ${s.mal} mal · ${s.blanco} en blanco</div></div>
+            <div class="tiny muted">${s.ok} bien · ${s.mal} mal · ${s.blanco} en blanco${s.mcq.length<15?` · ${s.mcq.length} preguntas, escalado`:''}</div></div>
           <div><div class="tiny muted">Parte II</div><div style="font-size:20px;font-weight:700">${s.parte2}<span class="tiny muted">/40</span></div>
-            <div class="tiny muted">autoevaluada con rúbrica</div></div>
+            <div class="tiny muted">rúbrica: ${s.parte2raw||0} de ${8*(s.devs.length)} pts${s.devs.length<5?' · escalado':''}</div></div>
           <div><div class="tiny muted">Tiempo</div><div style="font-size:20px;font-weight:700">${fmtSeg(s.segundos||0)}</div>
             <div class="tiny muted">${s.limite?'límite '+Math.round(s.limite/60000)+' min':'tiempo libre'}</div></div>
         </div>
@@ -1697,11 +1728,12 @@ document.addEventListener('keydown', e=>{
 });
 
 /* arranque */
+actualizarFoot();
 if(restaurarSim()){
   setTimeout(()=>toast('Se retomó el simulacro que tenías en curso'), 500);
 }
 ir('inicio');
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a5f9d8e0c969d7ef',t:'MTc5NTUzODMzOQ=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a5f9d8e0c969d7ef',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","spa":2}' crossorigin="anonymous"></script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a60a43eede541ea3',t:'MTc5NTcxMDQ5Nw=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a60a43eede541ea3',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"1954b47c125f43f8b4338b3c4f804e4f","spa":2}' crossorigin="anonymous"></script>
 </body>
 </html>
